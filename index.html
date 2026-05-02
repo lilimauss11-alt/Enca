@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Pro - Fed Edition</title>
+    <title>EnCa Pro - Custom Branding</title>
     <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,7 +31,10 @@
         #menu-screen {
             display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 400px; text-align: center; margin-top: 30px;
         }
-        .menu-title { color: var(--icon-red); font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+        .menu-title { font-size: 48px; font-weight: 900; margin-bottom: 20px; letter-spacing: -1px; }
+        .t-en { color: var(--icon-green); }
+        .t-ca { color: var(--icon-red); }
+
         .menu-btn {
             padding: 22px; border-radius: 18px; background: var(--bg);
             box-shadow: var(--shadow); cursor: pointer; font-weight: bold; font-size: 18px;
@@ -41,7 +44,7 @@
         .menu-btn.btn-classic { color: white; background: var(--icon-red); }
         .menu-btn.btn-write { color: var(--icon-green); border-color: var(--icon-green); }
         .menu-btn:active { transform: scale(0.96); box-shadow: var(--inner-shadow); }
-        .menu-btn span { display: block; font-size: 12px; opacity: 0.8; font-weight: normal; margin-top: 4px; }
+        .menu-btn span { display: block; font-size: 12px; opacity: 0.9; font-weight: normal; margin-top: 4px; }
 
         /* ИГРОВОЙ ЭКРАН */
         #game-ui { display: none; width: 100%; max-width: 600px; }
@@ -62,11 +65,9 @@
         .card.just-matched { background-color: var(--correct) !important; color: white !important; transform: scale(1.03); }
         .card.error-anim { background-color: var(--wrong); color: white; }
         
-        /* Стили для скрытого текста */
         .card.hidden-en { color: transparent !important; position: relative; }
         .card.hidden-en::after { content: '🔊'; color: #888; font-size: 22px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 
-        /* РЕЖИМ ПИСЬМА */
         #writing-mode { display: none; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
         .write-card { 
             width: 100%; padding: 45px 20px; background: var(--bg); border-radius: 20px; 
@@ -86,8 +87,8 @@
 <body>
 
     <div id="menu-screen">
-        <div class="menu-title">EnCa</div>
-        <button class="menu-btn btn-listen" onclick="startGame('listening')">🎧 НА СЛУХ<span>Текст откроется только при совпадении</span></button>
+        <div class="menu-title"><span class="t-en">En</span><span class="t-ca">Ca</span></div>
+        <button class="menu-btn btn-listen" onclick="startGame('listening')">🎧 НА СЛУХ<span>Слушай фразу и ищи перевод</span></button>
         <button class="menu-btn btn-classic" onclick="startGame('classic')">🧩 КЛАССИКА<span>Найди пару (текст виден)</span></button>
         <button class="menu-btn btn-write" onclick="startGame('writing')">✍️ ПИСЬМО<span>Переведи на английский</span></button>
     </div>
@@ -121,6 +122,7 @@
     </div>
 
     <script>
+        // Твой полный список слов из 160+ фраз
         const allWords = [
             { en: "What's up", ru: "Как дела" }, { en: "Not much", ru: "Ничего особенного" },
             { en: "Here we go", ru: "Поехали" }, { en: "There you go", ru: "вот так" },
@@ -157,7 +159,7 @@
             { en: "look into", ru: "изучить" }, { en: "look forward to", ru: "ждать" },
             { en: "get along (with)", ru: "ладить с" }, { en: "break up", ru: "расстаться" },
             { en: "fall in love", ru: "влюбиться" }, { en: "come over", ru: "зайти в гости" },
-            { en: "set aside", ru: "отложить" }, { en: "sign up", ru: "зарегистрироваться" },
+            { en: "set aside", ru: "отложи" }, { en: "sign up", ru: "зарегистрироваться" },
             { en: "pick out", ru: "выбрать" }, { en: "turn off", ru: "выключить" },
             { en: "cut off", ru: "прервать" }, { en: "take off", ru: "снять / взлетать" },
             { en: "drop off", ru: "подвезти" }, { en: "pay off", ru: "окупиться" },
@@ -267,7 +269,6 @@
         function createCard(text, pairId, lang) {
             const card = document.createElement('div');
             card.className = 'card';
-            // Если режим "на слух" - прячем текст на английских карточках
             if (lang === 'en' && currentGameMode === 'listening') card.classList.add('hidden-en');
             card.textContent = text;
             card.dataset.lang = lang;
@@ -296,7 +297,6 @@
                 if (c1.dataset.pairId === c2.dataset.pairId) {
                     correctCount++;
                     c1.classList.add('just-matched'); c2.classList.add('just-matched');
-                    // ПРИ СОВПАДЕНИИ ОТКРЫВАЕМ ТЕКСТ
                     c1.classList.remove('hidden-en'); c2.classList.remove('hidden-en');
                     
                     setTimeout(() => {
