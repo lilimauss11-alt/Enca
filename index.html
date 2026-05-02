@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Ghostly</title>
+    <title>EnCa Ghostly Stable</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="image.png">
@@ -37,17 +37,13 @@
             display: flex; align-items: center; justify-content: center; text-align: center;
             font-size: 13px; font-weight: 500; cursor: pointer;
             min-height: 70px; border: 2px solid transparent; color: #333;
-            /* Плавность для всех изменений */
-            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                        background-color 0.8s ease, 
-                        transform 0.8s ease, 
-                        box-shadow 0.4s;
+            /* Увеличенная плавность для эффекта призрака */
+            transition: opacity 1.2s ease, background-color 0.6s ease, color 0.6s ease, box-shadow 0.3s;
             opacity: 1;
         }
 
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
         
-        /* Эффект призрачного исчезновения */
         .card.ghost-out { 
             opacity: 0;
             background-color: var(--correct-bg);
@@ -55,7 +51,6 @@
             pointer-events: none;
         }
 
-        /* Эффект призрачного появления */
         .card.ghost-in {
             animation: ghostAppear 1.5s ease-out forwards;
         }
@@ -71,7 +66,7 @@
             transition: background-color 0.3s;
         }
 
-        .card.hidden { opacity: 0; pointer-events: none; }
+        .card.hidden { visibility: hidden; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -133,21 +128,19 @@
         function initGame() {
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
+            
+            // Берем первые 6 пар
             const initialSet = pool.splice(0, 6);
             
+            // Создаем карточки строго по колонкам
             initialSet.forEach(pair => {
                 enCol.appendChild(createCard(pair.en, pair.en, 'en'));
-                ruCol.appendChild(createCard(pair.ru, pair.en, 'ru'));
             });
-            shuffleColumns();
-        }
-
-        function shuffleColumns() {
-            const enCol = document.getElementById('en-column');
-            const ruCol = document.getElementById('ru-column');
-            [enCol, ruCol].forEach(col => {
-                const cards = Array.from(col.querySelectorAll('.card:not(.hidden)'));
-                cards.sort(() => 0.5 - Math.random()).forEach(c => col.appendChild(c));
+            
+            // Русские карточки перемешиваем отдельно, чтобы не стояли напротив английских
+            const shuffledForRu = [...initialSet].sort(() => 0.5 - Math.random());
+            shuffledForRu.forEach(pair => {
+                ruCol.appendChild(createCard(pair.ru, pair.en, 'ru'));
             });
         }
 
@@ -173,27 +166,25 @@
             correctScore++;
             document.getElementById('correct-count').textContent = correctScore;
             
-            // Медленно растворяем
             c1.classList.add('ghost-out');
             c2.classList.add('ghost-out');
 
             setTimeout(() => {
                 if (pool.length > 0) {
                     const nextPair = pool.shift();
-                    // Заменяем и медленно проявляем
+                    // Мы не перерисовываем всё, а только обновляем эти две карточки
                     updateCard(c1, nextPair);
                     updateCard(c2, nextPair);
-                    shuffleColumns();
                 } else {
                     c1.classList.add('hidden');
                     c2.classList.add('hidden');
                 }
-            }, 1200); // Время на полное растворение
+            }, 1200);
         }
 
         function updateCard(card, pair) {
             card.classList.remove('selected', 'ghost-out', 'ghost-in');
-            void card.offsetWidth; // Рестарт анимации
+            void card.offsetWidth; // Магия перезагрузки анимации
             card.classList.add('ghost-in');
             
             if (card.dataset.lang === 'en') {
