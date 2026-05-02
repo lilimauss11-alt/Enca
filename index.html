@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa - Fed's Marathon</title>
+    <title>EnCa - Final Marathon</title>
     <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -27,7 +27,7 @@
         .stats-container { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; }
         .stat-card { flex: 1; padding: 12px; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); text-align: center; font-size: 14px; font-weight: bold; }
         
-        .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; }
+        .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; transition: opacity 1s; }
         .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
         .column-title { text-align: center; font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
 
@@ -42,6 +42,21 @@
         .card.just-matched { background-color: var(--correct) !important; color: white !important; }
         .card.ghost-out { opacity: 0; pointer-events: none; }
         .card.error-anim { background-color: var(--wrong); color: white; }
+
+        /* Финальное окно */
+        #result-screen {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; max-width: 350px; background: var(--bg); border-radius: 30px;
+            box-shadow: var(--shadow); padding: 30px; text-align: center;
+            display: none; flex-direction: column; gap: 20px; z-index: 100;
+            opacity: 0; transition: opacity 2s ease;
+        }
+        .res-val { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .btn-restart {
+            padding: 15px; border-radius: 15px; border: none; background: var(--bg);
+            box-shadow: var(--shadow); color: var(--accent); font-weight: bold;
+            cursor: pointer; transition: 0.2s;
+        }
     </style>
 </head>
 <body>
@@ -55,6 +70,14 @@
     <div id="game-ui" class="game-container">
         <div id="en-column" class="column"><div class="column-title">English</div></div>
         <div id="ru-column" class="column"><div class="column-title">Русский</div></div>
+    </div>
+
+    <div id="result-screen">
+        <h2>Марафон пройден!</h2>
+        <p>Вы изучили все 160 фраз.</p>
+        <div style="color: var(--correct)">Всего верно: <div id="final-ok" class="res-val">0</div></div>
+        <div style="color: var(--wrong)">Ошибок: <div id="final-err" class="res-val">0</div></div>
+        <button class="btn-restart" onclick="restartGame()">Начать новый круг</button>
     </div>
 
     <script>
@@ -184,15 +207,14 @@
         }
 
         function initRound() {
-            if (pool.length < 6) refreshPool();
-
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
             
             Array.from(enCol.children).forEach(c => { if(!c.classList.contains('column-title')) c.remove(); });
             Array.from(ruCol.children).forEach(c => { if(!c.classList.contains('column-title')) c.remove(); });
 
-            let roundWords = pool.splice(0, 6);
+            let count = Math.min(6, pool.length);
+            let roundWords = pool.splice(0, count);
             let shuffledRu = shuffle([...roundWords]);
 
             roundWords.forEach(p => enCol.appendChild(createCard(p.en, p.en, 'en')));
@@ -254,9 +276,37 @@
             if (document.querySelectorAll('.card:not(.matched):not(.column-title):not(.just-matched)').length === 0) {
                 setTimeout(() => {
                     document.querySelectorAll('.card:not(.column-title)').forEach(c => c.classList.add('ghost-out'));
-                    setTimeout(initRound, 1200);
+                    
+                    setTimeout(() => {
+                        if (pool.length > 0) {
+                            initRound();
+                        } else {
+                            showResults();
+                        }
+                    }, 1200);
                 }, 600);
             }
+        }
+
+        function showResults() {
+            document.getElementById('game-ui').style.opacity = '0';
+            const screen = document.getElementById('result-screen');
+            document.getElementById('final-ok').textContent = correctScore;
+            document.getElementById('final-err').textContent = wrongScore;
+            screen.style.display = 'flex';
+            setTimeout(() => screen.style.opacity = '1', 100);
+        }
+
+        function restartGame() {
+            correctScore = 0;
+            wrongScore = 0;
+            document.getElementById('result-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('result-screen').style.display = 'none';
+                document.getElementById('game-ui').style.opacity = '1';
+                refreshPool();
+                initRound();
+            }, 1000);
         }
 
         refreshPool();
