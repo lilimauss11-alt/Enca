@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Pro - Clean Interface</title>
+    <title>EnCa Pro - Final Design</title>
     <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -33,12 +33,13 @@
         .t-en, .t-me { color: var(--icon-green); }
         .t-ca, .t-nyu { color: var(--icon-red); }
 
+        /* ВЫПУКЛЫЕ НАСТРОЙКИ */
         .settings-panel {
-            background: var(--bg); padding: 15px; border-radius: 20px; box-shadow: var(--inner-shadow);
-            margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px;
+            background: var(--bg); padding: 20px; border-radius: 20px; box-shadow: var(--shadow);
+            margin-bottom: 25px; display: flex; flex-direction: column; gap: 15px; font-size: 14px;
         }
         .setting-row { display: flex; justify-content: space-between; align-items: center; }
-        select { border: none; background: var(--bg); box-shadow: var(--shadow); padding: 5px 10px; border-radius: 10px; outline: none; }
+        select { border: none; background: var(--bg); box-shadow: var(--inner-shadow); padding: 8px 12px; border-radius: 12px; outline: none; font-weight: bold; color: #555; }
 
         .menu-btn {
             padding: 20px; border-radius: 18px; background: var(--bg);
@@ -51,14 +52,15 @@
 
         /* ИГРОВОЙ ИНТЕРФЕЙС */
         #game-ui { display: none; width: 100%; max-width: 600px; }
-        .stats-container { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
-        .stat-card { flex: 1; padding: 12px; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); text-align: center; font-size: 13px; font-weight: bold; }
+        .stats-container { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; justify-content: center; }
+        .stat-card { flex: 1; padding: 12px; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); text-align: center; font-size: 14px; font-weight: bold; }
         
-        /* КНОПКА МЕНЮ В ИГРЕ */
+        /* КНОПКА МЕНЮ ВНИЗУ */
+        .bottom-nav { width: 100%; display: flex; justify-content: center; margin-top: 30px; margin-bottom: 20px; }
         .back-menu-btn {
-            padding: 12px 15px; border-radius: 12px; background: var(--bg);
+            padding: 15px 30px; border-radius: 15px; background: var(--bg);
             box-shadow: var(--shadow); cursor: pointer; transition: 0.2s;
-            font-weight: 900; font-size: 14px; text-transform: uppercase;
+            font-weight: 900; font-size: 16px; text-transform: uppercase;
         }
         .back-menu-btn:active { box-shadow: var(--inner-shadow); transform: scale(0.95); }
 
@@ -67,20 +69,20 @@
         .column-title { text-align: center; font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
 
         .card {
-            min-height: 80px; background: var(--bg); padding: 10px; border-radius: 15px; box-shadow: var(--shadow);
+            min-height: 85px; background: var(--bg); padding: 10px; border-radius: 18px; box-shadow: var(--shadow);
             display: flex; align-items: center; justify-content: center; text-align: center;
-            font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #333;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #333;
         }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
         .card.matched { background-color: #d1e7dd; color: #666; box-shadow: none; border: 1px solid #b8dcc5; }
         .card.error-anim { background-color: var(--wrong); color: white; }
         
         .card.hidden-en { color: transparent !important; position: relative; }
-        .card.hidden-en::after { content: '🔊'; font-size: 24px; color: #888; position: absolute; }
+        .card.hidden-en::after { content: '🔊'; font-size: 26px; color: #888; position: absolute; }
 
         #writing-mode { display: none; flex-direction: column; align-items: center; gap: 20px; }
-        .write-card { width: 100%; padding: 40px; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow); text-align: center; font-size: 20px; font-weight: bold; color: var(--icon-red); }
-        .write-input { width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--bg); box-shadow: var(--inner-shadow); font-size: 18px; text-align: center; outline: none; }
+        .write-card { width: 100%; padding: 40px; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow); text-align: center; font-size: 22px; font-weight: bold; color: var(--icon-red); }
+        .write-input { width: 100%; padding: 18px; border-radius: 15px; border: none; background: var(--bg); box-shadow: var(--inner-shadow); font-size: 18px; text-align: center; outline: none; }
     </style>
 </head>
 <body>
@@ -115,9 +117,6 @@
     <!-- ИГРОВОЙ ЭКРАН -->
     <div id="game-ui">
         <div class="stats-container">
-            <div class="back-menu-btn" onclick="backToMenu()">
-                <span class="t-me">Ме</span><span class="t-nyu">Ню</span>
-            </div>
             <div class="stat-card">✅ <span id="correct-count">0</span></div>
             <div class="stat-card">❌ <span id="wrong-count">0</span></div>
             <div class="stat-card" style="color: var(--icon-red)">📦 <span id="pool-count">0</span></div>
@@ -132,10 +131,15 @@
             <div id="target-ru" class="write-card">...</div>
             <input type="text" id="user-input" class="write-input" placeholder="Переведи..." autocomplete="off">
         </div>
+
+        <div class="bottom-nav">
+            <div class="back-menu-btn" onclick="backToMenu()">
+                <span class="t-me">Ме</span><span class="t-nyu">Ню</span>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Твой полный список 171 фразы
         const allWords = [
             { en: "What's up", ru: "Как дела" }, { en: "Not much", ru: "Ничего особенного" },
             { en: "Here we go", ru: "Поехали" }, { en: "There you go", ru: "вот так" },
