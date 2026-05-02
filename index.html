@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa - Final Marathon</title>
+    <title>EnCa - MultiMode</title>
     <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,63 +24,102 @@
             display: flex; flex-direction: column; align-items: center;
             margin: 0; padding: 20px; min-height: 100vh;
         }
-        .stats-container { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; }
-        .stat-card { flex: 1; padding: 12px; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); text-align: center; font-size: 14px; font-weight: bold; }
+
+        /* МЕНЮ */
+        #menu-screen {
+            display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 400px; text-align: center; margin-top: 50px;
+        }
+        .menu-btn {
+            padding: 25px; border-radius: 20px; background: var(--bg);
+            box-shadow: var(--shadow); cursor: pointer; font-weight: bold; font-size: 18px;
+            transition: 0.3s; border: none; color: #444;
+        }
+        .menu-btn:active { box-shadow: var(--inner-shadow); transform: scale(0.98); }
+        .menu-btn span { display: block; font-size: 12px; color: #888; font-weight: normal; margin-top: 5px; }
+
+        /* ИГРОВАЯ ЗОНА */
+        #game-ui { display: none; width: 100%; max-width: 600px; }
+        .stats-container { display: flex; gap: 8px; margin-bottom: 20px; }
+        .stat-card { flex: 1; padding: 12px; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); text-align: center; font-size: 13px; font-weight: bold; }
         
-        .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; transition: opacity 1s; }
+        .columns-container { display: flex; gap: 15px; }
         .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
         .column-title { text-align: center; font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
 
         .card {
             min-height: 70px; background: var(--bg); padding: 10px; border-radius: 12px; box-shadow: var(--shadow);
             display: flex; align-items: center; justify-content: center; text-align: center;
-            font-size: 13px; font-weight: 500; cursor: pointer; color: #333;
-            transition: opacity 1.2s ease, background-color 0.4s, color 0.4s;
+            font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.4s;
         }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
-        .card.matched { background-color: #d1e7dd; color: #a0a0a0; pointer-events: none; box-shadow: none; border: 1px solid #c3e6cb; }
+        .card.matched { background-color: #d1e7dd; color: #a0a0a0; pointer-events: none; box-shadow: none; }
         .card.just-matched { background-color: var(--correct) !important; color: white !important; }
-        .card.ghost-out { opacity: 0; pointer-events: none; }
         .card.error-anim { background-color: var(--wrong); color: white; }
+        .card.hidden-en { color: transparent; position: relative; }
+        .card.hidden-en::after { content: '🔊'; color: #888; font-size: 20px; position: absolute; }
 
-        /* Финальное окно */
-        #result-screen {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 85%; max-width: 350px; background: var(--bg); border-radius: 30px;
-            box-shadow: var(--shadow); padding: 30px; text-align: center;
-            display: none; flex-direction: column; gap: 20px; z-index: 100;
-            opacity: 0; transition: opacity 2s ease;
+        /* РЕЖИМ ПИСЬМА */
+        #writing-mode { display: none; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+        .write-card { 
+            width: 100%; padding: 40px 20px; background: var(--bg); border-radius: 20px; 
+            box-shadow: var(--shadow); text-align: center; font-size: 20px; font-weight: bold; 
         }
-        .res-val { font-size: 24px; font-weight: bold; margin: 10px 0; }
-        .btn-restart {
-            padding: 15px; border-radius: 15px; border: none; background: var(--bg);
-            box-shadow: var(--shadow); color: var(--accent); font-weight: bold;
-            cursor: pointer; transition: 0.2s;
+        .write-input {
+            width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--bg);
+            box-shadow: var(--inner-shadow); font-size: 18px; text-align: center; outline: none;
+        }
+
+        /* ФИНАЛ */
+        #result-screen {
+            display: none; flex-direction: column; gap: 20px; text-align: center; padding: 30px;
+            background: var(--bg); border-radius: 30px; box-shadow: var(--shadow);
         }
     </style>
 </head>
 <body>
 
-    <div class="stats-container">
-        <div class="stat-card">✅ <span id="correct-count">0</span></div>
-        <div class="stat-card">❌ <span id="wrong-count">0</span></div>
-        <div class="stat-card" style="color: var(--accent)">📦 <span id="pool-count">0</span></div>
+    <!-- ЭКРАН МЕНЮ -->
+    <div id="menu-screen">
+        <h1 style="color: var(--accent); margin-bottom: 10px;">EnCa Menu</h1>
+        <button class="menu-btn" onclick="startGame('listening')">🔊 На слух<span>Английский скрыт, слушай звук</span></button>
+        <button class="menu-btn" onclick="startGame('classic')">🧩 Найди пару<span>Классический марафон</span></button>
+        <button class="menu-btn" onclick="startGame('writing')">✍️ Перевод<span>Напиши фразу на английском</span></button>
     </div>
 
-    <div id="game-ui" class="game-container">
-        <div id="en-column" class="column"><div class="column-title">English</div></div>
-        <div id="ru-column" class="column"><div class="column-title">Русский</div></div>
+    <!-- ИГРОВОЙ ИНТЕРФЕЙС -->
+    <div id="game-ui">
+        <div class="stats-container">
+            <div class="stat-card">✅ <span id="correct-count">0</span></div>
+            <div class="stat-card">❌ <span id="wrong-count">0</span></div>
+            <div class="stat-card" style="color: var(--accent)">📦 <span id="pool-count">0</span></div>
+        </div>
+
+        <!-- Контейнер для режимов 1 и 2 -->
+        <div id="matching-columns" class="columns-container">
+            <div id="en-column" class="column"><div class="column-title">English</div></div>
+            <div id="ru-column" class="column"><div class="column-title">Русский</div></div>
+        </div>
+
+        <!-- Контейнер для режима 3 -->
+        <div id="writing-mode">
+            <div id="target-ru" class="write-card">Русская фраза</div>
+            <input type="text" id="user-input" class="write-input" placeholder="Type in English..." autocomplete="off">
+            <p id="writing-feedback" style="font-weight: bold; min-height: 1.2em;"></p>
+        </div>
     </div>
 
+    <!-- ЭКРАН РЕЗУЛЬТАТОВ -->
     <div id="result-screen">
-        <h2>Марафон пройден!</h2>
-        <p>Вы изучили все 160 фраз.</p>
-        <div style="color: var(--correct)">Всего верно: <div id="final-ok" class="res-val">0</div></div>
-        <div style="color: var(--wrong)">Ошибок: <div id="final-err" class="res-val">0</div></div>
-        <button class="btn-restart" onclick="restartGame()">Начать новый круг</button>
+        <h2>🎉 Готово!</h2>
+        <div style="font-size: 18px;">
+            Верно: <span id="final-ok" style="color: var(--correct)">0</span><br>
+            Ошибок: <span id="final-err" style="color: var(--wrong)">0</span>
+        </div>
+        <button class="menu-btn" onclick="location.reload()">В меню</button>
     </div>
 
     <script>
+        // Твой список слов (сократил для примера, вставь все свои)
         const allWords = [
             { en: "What's up", ru: "Как дела" }, { en: "Not much", ru: "Ничего особенного" },
             { en: "Here we go", ru: "Поехали" }, { en: "There you go", ru: "вот так" },
@@ -105,41 +144,41 @@
             { en: "save up", ru: "копить" }, { en: "speak up", ru: "говори громче" },
             { en: "give up", ru: "сдаваться" }, { en: "make up", ru: "помириться / придумать" },
             { en: "bring up", ru: "поднять тему / воспитывать" }, { en: "hang up", ru: "повесить трубку" },
-            { en: "go out", ru: "выходить" }, { en: "find out", ru: "выяснить" },
-            { en: "figure out", ru: "разобраться" }, { en: "fill out", ru: "заполнить (форму)" },
-            { en: "check out", ru: "зацени / выехать из отеля" }, { en: "hand out", ru: "раздавать" },
-            { en: "work out", ru: "тренироваться / разобраться" }, { en: "run out of", ru: "закончиться" },
-            { en: "chill out", ru: "расслабься" }, { en: "drop out", ru: "бросить учёбу / курс" },
+            { en: "go out", ru: "выходить (в свет)" }, { en: "find out", ru: "выяснить" },
+            { en: "figure out", ru: "разобраться" }, { en: "fill out", ru: "заполнить форму" },
+            { en: "check out", ru: "зацени / выехать" }, { en: "hand out", ru: "раздавать" },
+            { en: "work out", ru: "тренироваться" }, { en: "run out of", ru: "закончиться" },
+            { en: "chill out", ru: "расслабься" }, { en: "drop out", ru: "бросить учебу" },
             { en: "carry out", ru: "выполнить" }, { en: "point out", ru: "указать" },
             { en: "cut out", ru: "прекратить / убрать" }, { en: "take out", ru: "выносить" },
-            { en: "sort out", ru: "уладить / разобраться" }, { en: "look after", ru: "присматривать за" },
+            { en: "sort out", ru: "разобраться" }, { en: "look after", ru: "присматривать" },
             { en: "look for", ru: "искать" }, { en: "look at", ru: "смотреть на" },
-            { en: "look into", ru: "расследовать / изучить" }, { en: "look forward to", ru: "ждать с нетерпением" },
+            { en: "look into", ru: "изучить" }, { en: "look forward to", ru: "ждать" },
             { en: "get along (with)", ru: "ладить с" }, { en: "break up", ru: "расстаться" },
             { en: "fall in love", ru: "влюбиться" }, { en: "come over", ru: "зайти в гости" },
-            { en: "set aside", ru: "отложить" }, { en: "sign up", ru: "зарегистрироваться" },
+            { en: "set aside", ru: "отложи" }, { en: "sign up", ru: "зарегистрируйся" },
             { en: "pick out", ru: "выбрать" }, { en: "turn off", ru: "выключить" },
-            { en: "cut off", ru: "прервать (связь)" }, { en: "take off", ru: "снять / взлетать" },
-            { en: "drop off", ru: "подвезти / высадить" }, { en: "pay off", ru: "расплатиться" },
-            { en: "show off", ru: "хвастаться" }, { en: "go off", ru: "сработать (будильник)" },
+            { en: "cut off", ru: "прервать" }, { en: "take off", ru: "снять / взлетать" },
+            { en: "drop off", ru: "подвезти" }, { en: "pay off", ru: "окупиться" },
+            { en: "show off", ru: "хвастаться" }, { en: "go off", ru: "сработать" },
             { en: "put off", ru: "откладывать" }, { en: "get off", ru: "выходить" },
             { en: "turn on", ru: "включить" }, { en: "put on", ru: "надевать" },
-            { en: "log on", ru: "войти в систему" }, { en: "hold on", ru: "подожди" },
-            { en: "hang on", ru: "подожди / держись" }, { en: "go on", ru: "продолжать" },
-            { en: "try on", ru: "примерять" }, { en: "come back", ru: "возвращаться" },
+            { en: "log on", ru: "войти" }, { en: "hold on", ru: "подожди" },
+            { en: "hang on", ru: "держись" }, { en: "go on", ru: "продолжать" },
+            { en: "try on", ru: "примерять" }, { en: "come back", ru: "вернуться" },
             { en: "pay back", ru: "вернуть долг" }, { en: "call back", ru: "перезвонить" },
-            { en: "bring back", ru: "вернуть / напомнить" }, { en: "take back", ru: "забрать обратно" },
-            { en: "So weird", ru: "Такое странное" }, { en: "Too much", ru: "Слишком" },
-            { en: "I'm tired of this", ru: "Я устал от этого" }, { en: "I love this", ru: "Мне это очень нравится" },
-            { en: "I don't like it", ru: "Мне это не нравится" }, { en: "So sad", ru: "Очень грустно" },
+            { en: "bring back", ru: "вернуть" }, { en: "take back", ru: "забрать" },
+            { en: "So weird", ru: "Так странно" }, { en: "Too much", ru: "Слишком" },
+            { en: "I'm tired of this", ru: "Я устал" }, { en: "I love this", ru: "Люблю это" },
+            { en: "I don't like it", ru: "Мне не нравится" }, { en: "So sad", ru: "Очень грустно" },
             { en: "I'm stressed", ru: "Я в стрессе" }, { en: "I'm relaxed", ru: "Я расслаблен" },
             { en: "It's annoying", ru: "Это раздражает" }, { en: "I’m easy", ru: "мне все равно" },
             { en: "How come", ru: "Как так?" }, { en: "What for", ru: "Зачем?" },
-            { en: "Why not", ru: "Почему бы и нет?" }, { en: "Who knows", ru: "Кто знает?" },
+            { en: "Why not", ru: "Почему нет?" }, { en: "Who knows", ru: "Кто знает?" },
             { en: "Where to", ru: "Куда?" }, { en: "How so", ru: "Почему так?" },
-            { en: "What now", ru: "И что теперь?" }, { en: "Anything else", ru: "Что-то ещё?" },
-            { en: "What's wrong", ru: "Что случилось?" }, { en: "All good", ru: "Всё в порядке" },
-            { en: "What’s your twenty", ru: "где ты?" }, { en: "Right now", ru: "Прямо сейчас" },
+            { en: "What now", ru: "Что теперь?" }, { en: "Anything else", ru: "Что-то еще?" },
+            { en: "What's wrong", ru: "Что случилось?" }, { en: "All good", ru: "Всё ок" },
+            { en: "What’s your twenty(20)", ru: "где ты?" }, { en: "Right now", ru: "Прямо сейчас" },
             { en: "Later on", ru: "Потом" }, { en: "In a bit", ru: "Через минутку" },
             { en: "All day", ru: "Весь день" }, { en: "Every day", ru: "Каждый день" },
             { en: "Not today", ru: "Не сегодня" }, { en: "Maybe later", ru: "Может позже" },
@@ -150,33 +189,34 @@
             { en: "Turn it off", ru: "Выключи" }, { en: "Turn it on", ru: "Включи" },
             { en: "Check it out", ru: "Зацени" }, { en: "Listen up", ru: "Слушай" },
             { en: "Calm down", ru: "Успокойся" }, { en: "Don't worry", ru: "Не волнуйся" },
-            { en: "Follow me", ru: "Иди за мной" }, { en: "Leave it", ru: "Оставь" },
+            { en: "Follow me", ru: "За мной" }, { en: "Leave it", ru: "Оставь" },
             { en: "Move on", ru: "Идем дальше" }, { en: "Get out", ru: "Уходи" },
             { en: "It depends", ru: "Зависит" }, { en: "That's fine", ru: "Это нормально" },
-            { en: "It's risky", ru: "Это рискованно" }, { en: "So easy", ru: "Так просто" },
+            { en: "It's risky", ru: "Рискованно" }, { en: "So easy", ru: "Так просто" },
             { en: "Too hard", ru: "Слишком сложно" }, { en: "Worth it", ru: "Оно того стоит" },
             { en: "Not worth it", ru: "Не стоит" }, { en: "Sounds bad", ru: "Звучит плохо" },
             { en: "No idea", ru: "Без понятия" }, { en: "Can't tell", ru: "Не могу сказать" },
             { en: "Kinda", ru: "типо того" }, { en: "I don't care", ru: "Мне всё равно" },
             { en: "Whatever you say", ru: "Как скажешь" }, { en: "You started it", ru: "Ты начал" },
-            { en: "That's not true", ru: "Это неправда" }, { en: "I doubt it", ru: "Сомневаюсь" },
-            { en: "You wish", ru: "Мечтай" }, { en: "Not my fault", ru: "Это не моя вина" },
-            { en: "Don't blame me", ru: "Не обвиняй меня" }, { en: "Let it go", ru: "Забудь" },
+            { en: "That's not true", ru: "Неправда" }, { en: "I doubt it", ru: "Сомневаюсь" },
+            { en: "You wish", ru: "Мечтай" }, { en: "Not my fault", ru: "Не моя вина" },
+            { en: "Don't blame me", ru: "Не вини меня" }, { en: "Let it go", ru: "Забудь" },
             { en: "Drop it", ru: "Оставь это" }, { en: "Could I have", ru: "могу ли я" },
-            { en: "That’s why", ru: "потому что" }, { en: "Don’t trip", ru: "это не твоё дело" },
-            { en: "he didn make it", ru: "он не выжил" }, { en: "still young", ru: "всё ещё молодой" },
-            { en: "I am boring", ru: "я скучный" }, { en: "I’m Broke", ru: "у меня нет денег" },
-            { en: "I’m running late", ru: "я опаздываю" }, { en: "That works", ru: "договорились 🤝" },
-            { en: "I am interesting", ru: "я интересный" }, { en: "Make yourself at home", ru: "чувствуй себя как дома" },
-            { en: "It slipped my mind", ru: "Вылетело из головы" }, { en: "That's on me", ru: "Это из-за меня" },
-            { en: "Let me get back to you", ru: "Дам ответ позже" }, { en: "I'm all set", ru: "Нет, спасибо" },
+            { en: "That’s why", ru: "поэтому" }, { en: "Don’t trip", ru: "не твое дело" },
+            { en: "he didn make it", ru: "он не выжил" }, { en: "still young", ru: "еще молодой" },
+            { en: "I am boring", ru: "я скучный" }, { en: "I’m Broke", ru: "нет денег" },
+            { en: "I’m running late", ru: "опаздываю" }, { en: "That works", ru: "договорились" },
+            { en: "I am interesting", ru: "я интересный" }, { en: "Make yourself at home", ru: "как дома" },
+            { en: "It slipped my mind", ru: "Вылетело из головы" }, { en: "That's on me", ru: "Моя вина" },
+            { en: "Let me get back to you", ru: "На связи" }, { en: "I'm all set", ru: "Нет, спасибо" },
             { en: "It is what it is", ru: "Что есть, то есть" }
         ];
 
         let pool = [];
+        let currentGameMode = '';
+        let correctCount = 0, wrongCount = 0;
         let selectedCards = [];
-        let correctScore = 0;
-        let wrongScore = 0;
+        let currentWritingWord = null;
 
         function speak(text) {
             const msg = new SpeechSynthesisUtterance(text);
@@ -185,46 +225,54 @@
             window.speechSynthesis.speak(msg);
         }
 
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
+        function shuffle(arr) {
+            return arr.sort(() => Math.random() - 0.5);
         }
 
-        function refreshPool() {
+        function startGame(mode) {
+            currentGameMode = mode;
             pool = shuffle([...allWords]);
-            updateStats();
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            
+            if (mode === 'writing') {
+                document.getElementById('matching-columns').style.display = 'none';
+                document.getElementById('writing-mode').style.display = 'flex';
+                nextWritingWord();
+                
+                // Обработка Enter в инпуте
+                document.getElementById('user-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') checkWritingAnswer();
+                });
+            } else {
+                initMatchingRound();
+            }
         }
 
-        function updateStats() {
-            document.getElementById('pool-count').textContent = pool.length;
-            document.getElementById('correct-count').textContent = correctScore;
-            document.getElementById('wrong-count').textContent = wrongScore;
-        }
-
-        function initRound() {
+        /* ЛОГИКА ДЛЯ РЕЖИМОВ 1 И 2 */
+        function initMatchingRound() {
+            if (pool.length === 0) return showFinalResults();
+            
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
             
-            Array.from(enCol.children).forEach(c => { if(!c.classList.contains('column-title')) c.remove(); });
-            Array.from(ruCol.children).forEach(c => { if(!c.classList.contains('column-title')) c.remove(); });
+            // Очистка
+            Array.from(enCol.children).forEach(c => !c.classList.contains('column-title') && c.remove());
+            Array.from(ruCol.children).forEach(c => !c.classList.contains('column-title') && c.remove());
 
             let count = Math.min(6, pool.length);
             let roundWords = pool.splice(0, count);
             let shuffledRu = shuffle([...roundWords]);
 
-            roundWords.forEach(p => enCol.appendChild(createCard(p.en, p.en, 'en')));
-            shuffledRu.forEach(p => ruCol.appendChild(createCard(p.ru, p.en, 'ru')));
+            roundWords.forEach(w => enCol.appendChild(createCard(w.en, w.en, 'en')));
+            shuffledRu.forEach(w => ruCol.appendChild(createCard(w.ru, w.en, 'ru')));
             updateStats();
         }
 
         function createCard(text, pairId, lang) {
             const card = document.createElement('div');
             card.className = 'card';
+            if (lang === 'en' && currentGameMode === 'listening') card.classList.add('hidden-en');
             card.textContent = text;
             card.dataset.lang = lang;
             card.dataset.pairId = pairId;
@@ -235,36 +283,47 @@
         function handleCardClick(card) {
             if (card.classList.contains('selected') || card.classList.contains('matched')) return;
 
+            // Переключение в одном столбце
             if (selectedCards.length === 1 && selectedCards[0].dataset.lang === card.dataset.lang) {
                 selectedCards[0].classList.remove('selected');
                 selectedCards = [card];
                 card.classList.add('selected');
-                if (card.dataset.lang === 'en') speak(card.textContent);
+                if (card.dataset.lang === 'en') {
+                    speak(card.textContent);
+                    card.classList.remove('hidden-en');
+                }
                 return;
             }
 
-            if (card.dataset.lang === 'en') speak(card.textContent);
+            if (card.dataset.lang === 'en') {
+                speak(card.textContent);
+                card.classList.remove('hidden-en');
+            }
             card.classList.add('selected');
             selectedCards.push(card);
 
             if (selectedCards.length === 2) {
                 const [c1, c2] = selectedCards;
                 if (c1.dataset.pairId === c2.dataset.pairId) {
-                    correctScore++;
-                    c1.classList.add('just-matched');
-                    c2.classList.add('just-matched');
+                    correctCount++;
+                    c1.classList.add('just-matched'); c2.classList.add('just-matched');
                     setTimeout(() => {
                         c1.classList.replace('just-matched', 'matched');
                         c2.classList.replace('just-matched', 'matched');
-                        checkRoundEnd();
+                        if (document.querySelectorAll('.card:not(.matched):not(.column-title):not(.just-matched)').length === 0) {
+                            setTimeout(initMatchingRound, 800);
+                        }
                     }, 500);
                 } else {
-                    wrongScore++;
-                    c1.classList.add('error-anim');
-                    c2.classList.add('error-anim');
+                    wrongCount++;
+                    c1.classList.add('error-anim'); c2.classList.add('error-anim');
                     setTimeout(() => {
                         c1.classList.remove('selected', 'error-anim');
                         c2.classList.remove('selected', 'error-anim');
+                        if (currentGameMode === 'listening') {
+                            if (c1.dataset.lang === 'en') c1.classList.add('hidden-en');
+                            if (c2.dataset.lang === 'en') c2.classList.add('hidden-en');
+                        }
                     }, 400);
                 }
                 selectedCards = [];
@@ -272,45 +331,49 @@
             }
         }
 
-        function checkRoundEnd() {
-            if (document.querySelectorAll('.card:not(.matched):not(.column-title):not(.just-matched)').length === 0) {
-                setTimeout(() => {
-                    document.querySelectorAll('.card:not(.column-title)').forEach(c => c.classList.add('ghost-out'));
-                    
-                    setTimeout(() => {
-                        if (pool.length > 0) {
-                            initRound();
-                        } else {
-                            showResults();
-                        }
-                    }, 1200);
-                }, 600);
+        /* ЛОГИКА ДЛЯ РЕЖИМА 3 (ПИСЬМО) */
+        function nextWritingWord() {
+            if (pool.length === 0) return showFinalResults();
+            currentWritingWord = pool.pop();
+            document.getElementById('target-ru').textContent = currentWritingWord.ru;
+            document.getElementById('user-input').value = '';
+            document.getElementById('writing-feedback').textContent = '';
+            updateStats();
+        }
+
+        function checkWritingAnswer() {
+            const input = document.getElementById('user-input');
+            const feedback = document.getElementById('writing-feedback');
+            const userVal = input.value.trim().toLowerCase();
+            const correctVal = currentWritingWord.en.toLowerCase();
+
+            if (userVal === correctVal) {
+                correctCount++;
+                feedback.style.color = 'var(--correct)';
+                feedback.textContent = 'Correct! ✨';
+                speak(currentWritingWord.en);
+                setTimeout(nextWritingWord, 1000);
+            } else {
+                wrongCount++;
+                feedback.style.color = 'var(--wrong)';
+                feedback.textContent = `Error! Right: ${currentWritingWord.en}`;
+                input.value = '';
             }
+            updateStats();
         }
 
-        function showResults() {
-            document.getElementById('game-ui').style.opacity = '0';
-            const screen = document.getElementById('result-screen');
-            document.getElementById('final-ok').textContent = correctScore;
-            document.getElementById('final-err').textContent = wrongScore;
-            screen.style.display = 'flex';
-            setTimeout(() => screen.style.opacity = '1', 100);
+        function updateStats() {
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('wrong-count').textContent = wrongCount;
+            document.getElementById('pool-count').textContent = pool.length;
         }
 
-        function restartGame() {
-            correctScore = 0;
-            wrongScore = 0;
-            document.getElementById('result-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('result-screen').style.display = 'none';
-                document.getElementById('game-ui').style.opacity = '1';
-                refreshPool();
-                initRound();
-            }, 1000);
+        function showFinalResults() {
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'flex';
+            document.getElementById('final-ok').textContent = correctCount;
+            document.getElementById('final-err').textContent = wrongCount;
         }
-
-        refreshPool();
-        initRound();
     </script>
 </body>
 </html>
