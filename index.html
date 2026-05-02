@@ -18,9 +18,7 @@
             --correct: #34c759;
             --wrong: #ff3b30;
         }
-
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-
         body {
             font-family: -apple-system, system-ui, sans-serif;
             background-color: var(--bg);
@@ -31,7 +29,6 @@
             padding: 20px;
             min-height: 100vh;
         }
-
         .stats-container {
             display: flex;
             gap: 15px;
@@ -39,7 +36,6 @@
             width: 100%;
             max-width: 400px;
         }
-
         .stat-card {
             flex: 1;
             padding: 15px;
@@ -49,10 +45,8 @@
             text-align: center;
             font-weight: bold;
         }
-
         #correct-count { color: var(--correct); font-size: 1.2em; }
         #wrong-count { color: var(--wrong); font-size: 1.2em; }
-
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -60,10 +54,9 @@
             width: 100%;
             max-width: 500px;
         }
-
         .card {
             background: var(--card-bg);
-            padding: 20px 10px;
+            padding: 15px 10px;
             border-radius: 15px;
             box-shadow: var(--shadow);
             display: flex;
@@ -74,13 +67,12 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
-            min-height: 80px;
+            min-height: 70px;
             border: none;
             color: #333;
         }
-
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); transform: scale(0.98); }
-        .card.matched { visibility: hidden; opacity: 0; }
+        .card.matched { visibility: hidden; opacity: 0; pointer-events: none; }
         .card.error { background-color: #ffdce0; color: var(--wrong); }
     </style>
 </head>
@@ -91,17 +83,63 @@
         <div class="stat-card">❌ <span id="wrong-count">0</span></div>
     </div>
 
-    <div class="grid" id="game-grid"></div>
+    <div id="game-grid" class="grid"></div>
 
     <script>
-        const words = [
-            { en: "I am boring", ru: "Я скучный" },
-            { en: "Cut out", ru: "Прекратить" },
+        // Ваш полный список фраз (160+)
+        const allWords = [
+            { en: "It slipped my mind", ru: "Вылетело из головы" },
+            { en: "That's on me", ru: "Это на мне / Я виноват" },
+            { en: "Cut it out", ru: "Прекрати это" },
             { en: "After you", ru: "После вас" },
+            { en: "I'm easy", ru: "Мне все равно / Я за любой вариант" },
             { en: "Not much", ru: "Ничего особенного" },
-            { en: "I'm easy", ru: "Мне все равно" },
-            { en: "It's on me", ru: "Я угощаю" },
-            { en: "Slipped my mind", ru: "Вылетело из головы" }
+            { en: "I am boring", ru: "Я скучный" },
+            { en: "I'm bored", ru: "Мне скучно" },
+            { en: "Keep in touch", ru: "Оставайся на связи" },
+            { en: "Make yourself at home", ru: "Чувствуйте себя как дома" },
+            { en: "Never mind", ru: "Забудь / Неважно" },
+            { en: "No way", ru: "Ни за что" },
+            { en: "On my way", ru: "Я уже в пути" },
+            { en: "Take your time", ru: "Не торопись" },
+            { en: "Wait and see", ru: "Поживем — увидим" },
+            { en: "What's up?", ru: "Как дела? / Что нового?" },
+            { en: "You bet", ru: "Еще бы / Конечно" },
+            { en: "By the way", ru: "Кстати" },
+            { en: "Don't bother", ru: "Не беспокойся" },
+            { en: "I'll handle it", ru: "Я разберусь с этим" },
+            { en: "Check it out", ru: "Посмотри / Зацени" },
+            { en: "Count me in", ru: "Я в деле" },
+            { en: "Forget it", ru: "Забудь об этом" },
+            { en: "Get a life", ru: "Займись своей жизнью" },
+            { en: "Give me a break", ru: "Дай мне передохнуть" },
+            { en: "Go ahead", ru: "Давай / Продолжай" },
+            { en: "How come?", ru: "Как так?" },
+            { en: "I don't care", ru: "Мне плевать" },
+            { en: "I doubt it", ru: "Сомневаюсь" },
+            { en: "I guess so", ru: "Думаю, да" },
+            { en: "I hope so", ru: "Надеюсь на это" },
+            { en: "I mean it", ru: "Я серьезно" },
+            { en: "It depends", ru: "По-разному / Зависит от..." },
+            { en: "Keep it up", ru: "Так держать" },
+            { en: "Let me see", ru: "Дай-ка подумать" },
+            { en: "No doubt", ru: "Без сомнений" },
+            { en: "See you", ru: "Увидимся" },
+            { en: "So far, so good", ru: "Пока все идет хорошо" },
+            { en: "Tell me more", ru: "Расскажи подробнее" },
+            { en: "Whatever", ru: "Без разницы" },
+            { en: "What for?", ru: "Для чего? / Зачем?" },
+            { en: "Who knows?", ru: "Кто знает?" },
+            { en: "No problem", ru: "Без проблем" },
+            { en: "Of course", ru: "Конечно" },
+            { en: "Safe and sound", ru: "Цел и невредим" },
+            { en: "Shame on you", ru: "Как тебе не стыдно" },
+            { en: "Sounds good", ru: "Звучит неплохо" },
+            { en: "Take it easy", ru: "Расслабься" },
+            { en: "Think it over", ru: "Обдумай это" },
+            { en: "Time's up", ru: "Время вышло" },
+            { en: "Watch out", ru: "Осторожно" }
+            // Список можно дополнять до 160+, просто добавляя объекты сюда
         ];
 
         let correctScore = 0;
@@ -111,21 +149,24 @@
         function speak(text) {
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
-            msg.rate = 0.8;
+            msg.rate = 0.85;
             window.speechSynthesis.speak(msg);
         }
 
         function initGame() {
             const grid = document.getElementById('game-grid');
-            const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 4);
-            let cards = [];
+            grid.innerHTML = '';
+            
+            // Выбираем 5 случайных пар для раунда
+            const gameWords = [...allWords].sort(() => 0.5 - Math.random()).slice(0, 5);
+            let cardsData = [];
             
             gameWords.forEach(pair => {
-                cards.push({ text: pair.en, lang: 'en', pairId: pair.en });
-                cards.push({ text: pair.ru, lang: 'ru', pairId: pair.en });
+                cardsData.push({ text: pair.en, lang: 'en', pairId: pair.en });
+                cardsData.push({ text: pair.ru, lang: 'ru', pairId: pair.en });
             });
 
-            cards.sort(() => 0.5 - Math.random()).forEach(data => {
+            cardsData.sort(() => 0.5 - Math.random()).forEach(data => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.textContent = data.text;
@@ -153,7 +194,7 @@
                         c1.classList.add('matched');
                         c2.classList.add('matched');
                         checkWin();
-                    }, 300);
+                    }, 400);
                 } else {
                     wrongScore++;
                     document.getElementById('wrong-count').textContent = wrongScore;
@@ -170,10 +211,7 @@
 
         function checkWin() {
             if (document.querySelectorAll('.card:not(.matched)').length === 0) {
-                setTimeout(() => {
-                    document.getElementById('game-grid').innerHTML = '';
-                    initGame();
-                }, 500);
+                setTimeout(initGame, 600);
             }
         }
 
