@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Pro - Custom Branding</title>
+    <title>EnCa Pro - Clean Interface</title>
     <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -28,73 +28,96 @@
         }
 
         /* ГЛАВНОЕ МЕНЮ */
-        #menu-screen {
-            display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 400px; text-align: center; margin-top: 30px;
+        #menu-screen { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px; text-align: center; }
+        .menu-title { font-size: 48px; font-weight: 900; margin: 20px 0; letter-spacing: -1px; }
+        .t-en, .t-me { color: var(--icon-green); }
+        .t-ca, .t-nyu { color: var(--icon-red); }
+
+        .settings-panel {
+            background: var(--bg); padding: 15px; border-radius: 20px; box-shadow: var(--inner-shadow);
+            margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px;
         }
-        .menu-title { font-size: 48px; font-weight: 900; margin-bottom: 20px; letter-spacing: -1px; }
-        .t-en { color: var(--icon-green); }
-        .t-ca { color: var(--icon-red); }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; }
+        select { border: none; background: var(--bg); box-shadow: var(--shadow); padding: 5px 10px; border-radius: 10px; outline: none; }
 
         .menu-btn {
-            padding: 22px; border-radius: 18px; background: var(--bg);
-            box-shadow: var(--shadow); cursor: pointer; font-weight: bold; font-size: 18px;
-            transition: 0.3s; border: 3px solid transparent; text-align: center;
+            padding: 20px; border-radius: 18px; background: var(--bg);
+            box-shadow: var(--shadow); cursor: pointer; font-weight: bold; font-size: 16px;
+            transition: 0.3s; border: none; text-align: center;
         }
         .menu-btn.btn-listen { color: white; background: var(--icon-green); }
         .menu-btn.btn-classic { color: white; background: var(--icon-red); }
-        .menu-btn.btn-write { color: var(--icon-green); border-color: var(--icon-green); }
         .menu-btn:active { transform: scale(0.96); box-shadow: var(--inner-shadow); }
-        .menu-btn span { display: block; font-size: 12px; opacity: 0.9; font-weight: normal; margin-top: 4px; }
 
-        /* ИГРОВОЙ ЭКРАН */
+        /* ИГРОВОЙ ИНТЕРФЕЙС */
         #game-ui { display: none; width: 100%; max-width: 600px; }
-        .stats-container { display: flex; gap: 8px; margin-bottom: 20px; }
+        .stats-container { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
         .stat-card { flex: 1; padding: 12px; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); text-align: center; font-size: 13px; font-weight: bold; }
         
-        .columns-container { display: flex; gap: 15px; }
-        .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-        .column-title { text-align: center; font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        /* КНОПКА МЕНЮ В ИГРЕ */
+        .back-menu-btn {
+            padding: 12px 15px; border-radius: 12px; background: var(--bg);
+            box-shadow: var(--shadow); cursor: pointer; transition: 0.2s;
+            font-weight: 900; font-size: 14px; text-transform: uppercase;
+        }
+        .back-menu-btn:active { box-shadow: var(--inner-shadow); transform: scale(0.95); }
+
+        .columns-container { display: flex; gap: 12px; }
+        .column { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .column-title { text-align: center; font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
 
         .card {
-            min-height: 75px; background: var(--bg); padding: 10px; border-radius: 14px; box-shadow: var(--shadow);
+            min-height: 80px; background: var(--bg); padding: 10px; border-radius: 15px; box-shadow: var(--shadow);
             display: flex; align-items: center; justify-content: center; text-align: center;
-            font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.4s; color: #333;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #333;
         }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
-        .card.matched { background-color: #d1e7dd; color: #707070; pointer-events: none; box-shadow: none; border: 1px solid #b8dcc5; }
-        .card.just-matched { background-color: var(--correct) !important; color: white !important; transform: scale(1.03); }
+        .card.matched { background-color: #d1e7dd; color: #666; box-shadow: none; border: 1px solid #b8dcc5; }
         .card.error-anim { background-color: var(--wrong); color: white; }
         
         .card.hidden-en { color: transparent !important; position: relative; }
-        .card.hidden-en::after { content: '🔊'; color: #888; font-size: 22px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+        .card.hidden-en::after { content: '🔊'; font-size: 24px; color: #888; position: absolute; }
 
-        #writing-mode { display: none; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
-        .write-card { 
-            width: 100%; padding: 45px 20px; background: var(--bg); border-radius: 20px; 
-            box-shadow: var(--shadow); text-align: center; font-size: 22px; font-weight: bold; color: var(--icon-red);
-        }
-        .write-input {
-            width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--bg);
-            box-shadow: var(--inner-shadow); font-size: 18px; text-align: center; outline: none; color: #333;
-        }
-
-        #result-screen {
-            display: none; flex-direction: column; gap: 20px; text-align: center; padding: 35px;
-            background: var(--bg); border-radius: 30px; box-shadow: var(--shadow); width: 90%; max-width: 350px;
-        }
+        #writing-mode { display: none; flex-direction: column; align-items: center; gap: 20px; }
+        .write-card { width: 100%; padding: 40px; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow); text-align: center; font-size: 20px; font-weight: bold; color: var(--icon-red); }
+        .write-input { width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--bg); box-shadow: var(--inner-shadow); font-size: 18px; text-align: center; outline: none; }
     </style>
 </head>
 <body>
 
+    <!-- ГЛАВНОЕ МЕНЮ -->
     <div id="menu-screen">
         <div class="menu-title"><span class="t-en">En</span><span class="t-ca">Ca</span></div>
-        <button class="menu-btn btn-listen" onclick="startGame('listening')">🎧 НА СЛУХ<span>Слушай фразу и ищи перевод</span></button>
-        <button class="menu-btn btn-classic" onclick="startGame('classic')">🧩 КЛАССИКА<span>Найди пару (текст виден)</span></button>
-        <button class="menu-btn btn-write" onclick="startGame('writing')">✍️ ПИСЬМО<span>Переведи на английский</span></button>
+        
+        <div class="settings-panel">
+            <div class="setting-row">
+                <span>Скорость речи:</span>
+                <select id="speech-rate">
+                    <option value="0.6">Медленно</option>
+                    <option value="0.9" selected>Нормально</option>
+                    <option value="1.2">Быстро</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <span>Голос:</span>
+                <select id="voice-gender">
+                    <option value="female">Женский</option>
+                    <option value="male">Мужской</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="menu-btn btn-listen" onclick="startGame('listening')">🎧 НА СЛУХ</button>
+        <button class="menu-btn btn-classic" onclick="startGame('classic')">🧩 КЛАССИКА</button>
+        <button class="menu-btn" style="color: var(--icon-green); border: 2px solid" onclick="startGame('writing')">✍️ ПИСЬМО</button>
     </div>
 
+    <!-- ИГРОВОЙ ЭКРАН -->
     <div id="game-ui">
         <div class="stats-container">
+            <div class="back-menu-btn" onclick="backToMenu()">
+                <span class="t-me">Ме</span><span class="t-nyu">Ню</span>
+            </div>
             <div class="stat-card">✅ <span id="correct-count">0</span></div>
             <div class="stat-card">❌ <span id="wrong-count">0</span></div>
             <div class="stat-card" style="color: var(--icon-red)">📦 <span id="pool-count">0</span></div>
@@ -106,23 +129,13 @@
         </div>
 
         <div id="writing-mode">
-            <div id="target-ru" class="write-card">Русская фраза</div>
-            <input type="text" id="user-input" class="write-input" placeholder="Напиши на английском..." autocomplete="off">
-            <p id="writing-feedback" style="font-weight: bold; min-height: 1.5em;"></p>
+            <div id="target-ru" class="write-card">...</div>
+            <input type="text" id="user-input" class="write-input" placeholder="Переведи..." autocomplete="off">
         </div>
-    </div>
-
-    <div id="result-screen">
-        <h2 style="color: var(--icon-green)">Марафон окончен!</h2>
-        <div style="font-size: 18px; margin: 10px 0;">
-            Правильно: <span id="final-ok" style="color: var(--correct)">0</span><br>
-            Ошибок: <span id="final-err" style="color: var(--wrong)">0</span>
-        </div>
-        <button class="menu-btn btn-classic" onclick="location.reload()">В МЕНЮ</button>
     </div>
 
     <script>
-        // Твой полный список слов из 160+ фраз
+        // Твой полный список 171 фразы
         const allWords = [
             { en: "What's up", ru: "Как дела" }, { en: "Not much", ru: "Ничего особенного" },
             { en: "Here we go", ru: "Поехали" }, { en: "There you go", ru: "вот так" },
@@ -221,49 +234,57 @@
         let selectedCards = [];
         let currentWritingWord = null;
 
-        function speak(text) {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US';
-            msg.rate = 0.9;
-            window.speechSynthesis.speak(msg);
+        function getVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            const gender = document.getElementById('voice-gender').value;
+            return voices.find(v => v.lang.startsWith('en') && (gender === 'male' ? v.name.includes('Male') || v.name.includes('Daniel') : v.name.includes('Female') || v.name.includes('Samantha'))) || voices.find(v => v.lang.startsWith('en'));
         }
 
-        function shuffle(arr) {
-            return arr.sort(() => Math.random() - 0.5);
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            msg.rate = parseFloat(document.getElementById('speech-rate').value);
+            msg.voice = getVoice();
+            window.speechSynthesis.speak(msg);
         }
 
         function startGame(mode) {
             currentGameMode = mode;
-            pool = shuffle([...allWords]);
+            correctCount = 0; wrongCount = 0;
+            document.getElementById('correct-count').textContent = '0';
+            document.getElementById('wrong-count').textContent = '0';
+            pool = [...allWords].sort(() => Math.random() - 0.5);
             document.getElementById('menu-screen').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
-            
             if (mode === 'writing') {
                 document.getElementById('matching-columns').style.display = 'none';
                 document.getElementById('writing-mode').style.display = 'flex';
                 nextWritingWord();
-                document.getElementById('user-input').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') checkWritingAnswer();
-                });
             } else {
+                document.getElementById('matching-columns').style.display = 'flex';
+                document.getElementById('writing-mode').style.display = 'none';
                 initMatchingRound();
             }
         }
 
+        function backToMenu() {
+            window.speechSynthesis.cancel();
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'flex';
+        }
+
         function initMatchingRound() {
-            if (pool.length === 0) return showFinalResults();
+            if (pool.length === 0) return backToMenu();
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
             Array.from(enCol.children).forEach(c => !c.classList.contains('column-title') && c.remove());
             Array.from(ruCol.children).forEach(c => !c.classList.contains('column-title') && c.remove());
-
-            let count = Math.min(6, pool.length);
-            let roundWords = pool.splice(0, count);
-            let shuffledRu = shuffle([...roundWords]);
-
+            let roundWords = pool.splice(0, 6);
+            let shuffledRu = [...roundWords].sort(() => Math.random() - 0.5);
             roundWords.forEach(w => enCol.appendChild(createCard(w.en, w.en, 'en')));
             shuffledRu.forEach(w => ruCol.appendChild(createCard(w.ru, w.en, 'ru')));
-            updateStats();
+            document.getElementById('pool-count').textContent = pool.length;
         }
 
         function createCard(text, pairId, lang) {
@@ -278,8 +299,11 @@
         }
 
         function handleCardClick(card) {
-            if (card.classList.contains('selected') || card.classList.contains('matched')) return;
-
+            if (card.dataset.lang === 'en' && (card.classList.contains('matched') || card.classList.contains('selected'))) {
+                speak(card.textContent);
+                return;
+            }
+            if (card.classList.contains('matched')) return;
             if (selectedCards.length === 1 && selectedCards[0].dataset.lang === card.dataset.lang) {
                 selectedCards[0].classList.remove('selected');
                 selectedCards = [card];
@@ -287,25 +311,19 @@
                 if (card.dataset.lang === 'en') speak(card.textContent);
                 return;
             }
-
             if (card.dataset.lang === 'en') speak(card.textContent);
             card.classList.add('selected');
             selectedCards.push(card);
-
             if (selectedCards.length === 2) {
                 const [c1, c2] = selectedCards;
                 if (c1.dataset.pairId === c2.dataset.pairId) {
                     correctCount++;
-                    c1.classList.add('just-matched'); c2.classList.add('just-matched');
                     c1.classList.remove('hidden-en'); c2.classList.remove('hidden-en');
-                    
-                    setTimeout(() => {
-                        c1.classList.replace('just-matched', 'matched');
-                        c2.classList.replace('just-matched', 'matched');
-                        if (document.querySelectorAll('.card:not(.matched):not(.column-title):not(.just-matched)').length === 0) {
-                            setTimeout(initMatchingRound, 800);
-                        }
-                    }, 500);
+                    c1.classList.add('matched'); c2.classList.add('matched');
+                    c1.classList.remove('selected'); c2.classList.remove('selected');
+                    if (document.querySelectorAll('.card:not(.matched):not(.column-title)').length === 0) {
+                        setTimeout(initMatchingRound, 800);
+                    }
                 } else {
                     wrongCount++;
                     c1.classList.add('error-anim'); c2.classList.add('error-anim');
@@ -315,52 +333,35 @@
                     }, 400);
                 }
                 selectedCards = [];
-                updateStats();
+                document.getElementById('correct-count').textContent = correctCount;
+                document.getElementById('wrong-count').textContent = wrongCount;
             }
         }
 
         function nextWritingWord() {
-            if (pool.length === 0) return showFinalResults();
+            if (pool.length === 0) return backToMenu();
             currentWritingWord = pool.pop();
             document.getElementById('target-ru').textContent = currentWritingWord.ru;
             document.getElementById('user-input').value = '';
-            document.getElementById('writing-feedback').textContent = '';
-            updateStats();
-        }
-
-        function checkWritingAnswer() {
-            const input = document.getElementById('user-input');
-            const feedback = document.getElementById('writing-feedback');
-            const userVal = input.value.trim().toLowerCase();
-            const correctVal = currentWritingWord.en.toLowerCase();
-
-            if (userVal === correctVal) {
-                correctCount++;
-                feedback.style.color = 'var(--correct)';
-                feedback.textContent = 'Верно! ✨';
-                speak(currentWritingWord.en);
-                setTimeout(nextWritingWord, 1000);
-            } else {
-                wrongCount++;
-                feedback.style.color = 'var(--wrong)';
-                feedback.textContent = `Ошибка! Правильно: ${currentWritingWord.en}`;
-                input.value = '';
-            }
-            updateStats();
-        }
-
-        function updateStats() {
-            document.getElementById('correct-count').textContent = correctCount;
-            document.getElementById('wrong-count').textContent = wrongCount;
             document.getElementById('pool-count').textContent = pool.length;
         }
 
-        function showFinalResults() {
-            document.getElementById('game-ui').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'flex';
-            document.getElementById('final-ok').textContent = correctCount;
-            document.getElementById('final-err').textContent = wrongCount;
-        }
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (e.target.value.trim().toLowerCase() === currentWritingWord.en.toLowerCase()) {
+                    correctCount++;
+                    speak(currentWritingWord.en);
+                    nextWritingWord();
+                } else {
+                    wrongCount++;
+                    alert('Верно: ' + currentWritingWord.en);
+                }
+                document.getElementById('correct-count').textContent = correctCount;
+                document.getElementById('wrong-count').textContent = wrongCount;
+            }
+        });
+        
+        window.speechSynthesis.onvoiceschanged = getVoice;
     </script>
 </body>
 </html>
