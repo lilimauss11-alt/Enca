@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Fix</title>
+    <title>EnCa Random Ghost</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="image.png">
@@ -31,10 +31,7 @@
         .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
         .column-title { text-align: center; font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
 
-        .card-slot {
-            min-height: 70px;
-            position: relative;
-        }
+        .card-slot { min-height: 70px; position: relative; }
 
         .card {
             position: absolute; width: 100%; height: 100%;
@@ -42,7 +39,7 @@
             display: flex; align-items: center; justify-content: center; text-align: center;
             font-size: 13px; font-weight: 500; cursor: pointer;
             border: 2px solid transparent; color: #333;
-            transition: opacity 1.2s ease, background-color 0.6s ease, transform 0.4s ease;
+            transition: opacity 1.2s ease, background-color 0.6s ease;
             opacity: 1;
         }
 
@@ -86,7 +83,10 @@
             { en: "Check it out", ru: "Зацени" }
         ];
 
-        let pool = [...allWords].sort(() => 0.5 - Math.random());
+        // Пулы для каждой колонки
+        let enPool = [...allWords].sort(() => 0.5 - Math.random());
+        let ruPool = [...allWords].sort(() => 0.5 - Math.random());
+        
         let correctScore = 0;
         let wrongScore = 0;
         let selectedCards = [];
@@ -102,12 +102,13 @@
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
             
-            const initialSet = pool.splice(0, 6);
-            const ruSet = [...initialSet].sort(() => 0.5 - Math.random());
+            // На старте берем первые 6 слов из каждого пула
+            const startEn = enPool.splice(0, 6);
+            const startRu = ruPool.splice(0, 6);
 
             for(let i=0; i<6; i++) {
-                enCol.appendChild(createSlot(initialSet[i].en, initialSet[i].en, 'en'));
-                ruCol.appendChild(createSlot(ruSet[i].ru, ruSet[i].pairId || ruSet[i].en, 'ru'));
+                enCol.appendChild(createSlot(startEn[i].en, startEn[i].en, 'en'));
+                ruCol.appendChild(createSlot(startRu[i].ru, startRu[i].en, 'ru'));
             }
         }
 
@@ -149,31 +150,28 @@
             c2.classList.add('ghost-out');
 
             setTimeout(() => {
-                if (pool.length > 0) {
-                    const nextPair = pool.shift();
-                    replaceContent(c1, nextPair);
-                    replaceContent(c2, nextPair);
-                } else {
-                    c1.parentElement.classList.add('hidden');
-                    c2.parentElement.classList.add('hidden');
-                }
+                // Для каждой карточки ищем замену независимо
+                replaceIndividually(c1);
+                replaceIndividually(c2);
             }, 1200);
         }
 
-        function replaceContent(card, pair) {
-            card.classList.remove('selected', 'ghost-out');
-            card.style.opacity = "0"; // Мгновенно в ноль для смены текста
+        function replaceIndividually(card) {
+            const currentPool = (card.dataset.lang === 'en') ? enPool : ruPool;
             
-            setTimeout(() => {
-                if (card.dataset.lang === 'en') {
-                    card.textContent = pair.en;
-                    card.dataset.pairId = pair.en;
-                } else {
-                    card.textContent = pair.ru;
-                    card.dataset.pairId = pair.en;
-                }
-                card.style.opacity = "1"; // Плавное появление
-            }, 50);
+            if (currentPool.length > 0) {
+                const nextItem = currentPool.shift();
+                card.classList.remove('selected', 'ghost-out');
+                card.style.opacity = "0";
+                
+                setTimeout(() => {
+                    card.textContent = (card.dataset.lang === 'en') ? nextItem.en : nextItem.ru;
+                    card.dataset.pairId = nextItem.en;
+                    card.style.opacity = "1";
+                }, 50);
+            } else {
+                card.parentElement.classList.add('hidden');
+            }
         }
 
         function processWrong(c1, c2) {
