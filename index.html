@@ -15,8 +15,10 @@
             --shadow: 7px 7px 14px #bec8d9, -7px -7px 14px #ffffff;
             --inner-shadow: inset 4px 4px 8px #bec8d9, inset -4px -4px 8px #ffffff;
             --accent: #4A90E2;
-            --correct: #34c759;
-            --wrong: #ff3b30;
+            --correct-bg: #d4edda;
+            --correct-text: #155724;
+            --wrong-bg: #f8d7da;
+            --wrong-text: #721c24;
         }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body {
@@ -45,9 +47,6 @@
             text-align: center;
             font-weight: bold;
         }
-        #correct-count { color: var(--correct); }
-        #wrong-count { color: var(--wrong); }
-
         .game-container {
             display: flex;
             gap: 20px;
@@ -65,7 +64,6 @@
             font-size: 12px;
             color: #888;
             text-transform: uppercase;
-            letter-spacing: 1px;
             margin-bottom: 5px;
         }
         .card {
@@ -86,8 +84,18 @@
             color: #333;
         }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
-        .card.matched { border-color: var(--correct); color: var(--correct); pointer-events: none; }
-        .card.error { border-color: var(--wrong); color: var(--wrong); }
+        .card.matched { 
+            background-color: var(--correct-bg); 
+            color: var(--correct-text); 
+            border-color: #c3e6cb;
+            pointer-events: none;
+            box-shadow: none;
+        }
+        .card.error { 
+            background-color: var(--wrong-bg); 
+            color: var(--wrong-text); 
+            border-color: #f5c6cb;
+        }
     </style>
 </head>
 <body>
@@ -98,12 +106,8 @@
     </div>
 
     <div class="game-container">
-        <div class="column" id="en-column">
-            <div class="column-title">English</div>
-        </div>
-        <div class="column" id="ru-column">
-            <div class="column-title">Русский</div>
-        </div>
+        <div id="en-column" class="column"><div class="column-title">English</div></div>
+        <div id="ru-column" class="column"><div class="column-title">Русский</div></div>
     </div>
 
     <script>
@@ -115,17 +119,11 @@
             { en: "I'm easy", ru: "Я за любой вариант" },
             { en: "Not much", ru: "Ничего особенного" },
             { en: "I am boring", ru: "Я скучный" },
-            { en: "Keep in touch", ru: "Оставайся на связи" },
-            { en: "Never mind", ru: "Неважно / Забудь" },
-            { en: "No way", ru: "Ни за что" },
-            { en: "Take your time", ru: "Не торопись" },
-            { en: "You bet", ru: "Еще бы / Конечно" },
-            { en: "By the way", ru: "Кстати" },
-            { en: "Count me in", ru: "Я в деле" },
-            { en: "I doubt it", ru: "Сомневаюсь" },
-            { en: "It depends", ru: "Зависит от обстоятельств" },
-            { en: "Sounds good", ru: "Звучит неплохо" },
-            { en: "Take it easy", ru: "Расслабься" }
+            { en: "I'm bored", ru: "Мне скучно" },
+            { en: "Keep in touch", ru: "На связи" },
+            { en: "Never mind", ru: "Неважно" },
+            { en: "Take it easy", ru: "Расслабься" },
+            { en: "You bet", ru: "Еще бы" }
         ];
 
         let correctScore = 0;
@@ -142,33 +140,34 @@
         function initGame() {
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
-            
-            // Очищаем колонки кроме заголовков
             enCol.querySelectorAll('.card').forEach(c => c.remove());
             ruCol.querySelectorAll('.card').forEach(c => c.remove());
 
             const gameWords = [...allWords].sort(() => 0.5 - Math.random()).slice(0, 6);
             
-            let enCards = gameWords.map(p => ({ text: p.en, pairId: p.en, lang: 'en' }));
-            let ruCards = gameWords.map(p => ({ text: p.ru, pairId: p.en, lang: 'ru' }));
+            // Английские карточки в левую колонку
+            [...gameWords].sort(() => 0.5 - Math.random()).forEach(pair => {
+                createCard(pair.en, pair.en, 'en', enCol);
+            });
 
-            enCards.sort(() => 0.5 - Math.random()).forEach(data => createCard(data, enCol));
-            ruCards.sort(() => 0.5 - Math.random()).forEach(data => createCard(data, ruCol));
+            // Русские карточки в правую колонку
+            [...gameWords].sort(() => 0.5 - Math.random()).forEach(pair => {
+                createCard(pair.ru, pair.en, 'ru', ruCol);
+            });
         }
 
-        function createCard(data, container) {
+        function createCard(text, pairId, lang, container) {
             const card = document.createElement('div');
             card.className = 'card';
-            card.textContent = data.text;
-            card.dataset.lang = data.lang;
-            card.dataset.pairId = data.pairId;
+            card.textContent = text;
+            card.dataset.lang = lang;
+            card.dataset.pairId = pairId;
             card.onclick = () => handleCardClick(card);
             container.appendChild(card);
         }
 
         function handleCardClick(card) {
             if (card.classList.contains('selected') || card.classList.contains('matched')) return;
-
             if (card.dataset.lang === 'en') speak(card.textContent);
 
             card.classList.add('selected');
