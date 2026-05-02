@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Final Edition</title>
+    <title>EnCa Global Stats</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="image.png">
@@ -42,7 +42,6 @@
         .card.ghost-out { opacity: 0; pointer-events: none; }
         .card.error-anim { background-color: var(--wrong); color: white; transition: 0.3s; }
 
-        /* Финальное окно */
         #result-screen {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 85%; max-width: 350px; background: var(--bg); border-radius: 30px;
@@ -72,14 +71,15 @@
     </div>
 
     <div id="result-screen">
-        <h2>Результаты</h2>
-        <div style="color: var(--correct)">Верно: <div id="final-ok" class="res-val">0</div></div>
-        <div style="color: var(--wrong)">Ошибок: <div id="final-err" class="res-val">0</div></div>
-        <button class="btn-restart" onclick="restartGame()">Начать заново</button>
+        <h2>Финальный счет</h2>
+        <p>Вы прошли весь список!</p>
+        <div style="color: var(--correct)">Всего верно: <div id="final-ok" class="res-val">0</div></div>
+        <div style="color: var(--wrong)">Всего ошибок: <div id="final-err" class="res-val">0</div></div>
+        <button class="btn-restart" onclick="restartGame()">Начать марафон заново</button>
     </div>
 
     <script>
-        // Здесь ваш полный список из 160+ слов
+        // Вставьте сюда ваш полный список из 160 слов
         const allWords = [
             { en: "It slipped my mind", ru: "Вылетело из головы" },
             { en: "That's on me", ru: "Я виноват / Моя вина" },
@@ -89,7 +89,7 @@
             { en: "Not much", ru: "Ничего особенного" },
             { en: "Keep in touch", ru: "На связи" },
             { en: "Take it easy", ru: "Расслабься" }
-            // Добавьте остальные слова сюда
+            // ... и так далее до 160
         ];
 
         let pool = [];
@@ -110,6 +110,7 @@
             enCol.querySelectorAll('.card').forEach(c => c.remove());
             ruCol.querySelectorAll('.card').forEach(c => c.remove());
 
+            // Если слов осталось меньше 6 — показываем финал марафона
             if (pool.length < 6) {
                 showResults();
                 return;
@@ -161,9 +162,11 @@
         }
 
         function checkRoundEnd() {
+            // Если на экране не осталось непарных карточек
             if (document.querySelectorAll('.card:not(.matched)').length === 0) {
                 setTimeout(() => {
                     document.querySelectorAll('.card').forEach(c => c.classList.add('ghost-out'));
+                    // Через 2 секунды после растворения запускаем следующий раунд
                     setTimeout(initRound, 2000);
                 }, 1000);
             }
@@ -187,12 +190,13 @@
             setTimeout(() => {
                 document.getElementById('result-screen').style.display = 'none';
                 document.getElementById('game-ui').style.opacity = '1';
+                // Перемешиваем заново весь список из 160 слов
                 pool = [...allWords].sort(() => 0.5 - Math.random());
                 initRound();
             }, 1000);
         }
 
-        // Запуск
+        // Первый запуск
         pool = [...allWords].sort(() => 0.5 - Math.random());
         initRound();
     </script>
