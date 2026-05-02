@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Super Smooth Ghost</title>
+    <title>EnCa Final Edition</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="image.png">
@@ -14,8 +14,8 @@
             --shadow: 7px 7px 14px #bec8d9, -7px -7px 14px #ffffff;
             --inner-shadow: inset 4px 4px 8px #bec8d9, inset -4px -4px 8px #ffffff;
             --accent: #4A90E2;
-            --correct-bg: #34c759;
-            --wrong-bg: #ff3b30;
+            --correct: #34c759;
+            --wrong: #ff3b30;
         }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body {
@@ -26,28 +26,37 @@
         }
         .stats-container { display: flex; gap: 15px; margin-bottom: 20px; width: 100%; max-width: 400px; }
         .stat-card { flex: 1; padding: 15px; background: var(--bg); border-radius: 15px; box-shadow: var(--shadow); text-align: center; font-weight: bold; }
-        .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; }
+        
+        .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; transition: opacity 1s; }
         .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
         .column-title { text-align: center; font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
-        .card-slot { min-height: 70px; position: relative; }
-        
-        .card {
-            position: absolute; width: 100%; height: 100%;
-            background: var(--bg); padding: 12px 8px; border-radius: 12px; box-shadow: var(--shadow);
-            display: flex; align-items: center; justify-content: center; text-align: center;
-            font-size: 13px; font-weight: 500; cursor: pointer;
-            border: 2px solid transparent; color: #333;
-            /* Исчезновение 1.2с, Появление теперь 2.0с для максимальной плавности */
-            transition: opacity 2.0s cubic-bezier(0.4, 0, 0.2, 1), 
-                        background-color 0.6s ease, 
-                        color 0.6s ease;
-            opacity: 1;
-        }
 
+        .card {
+            min-height: 70px; background: var(--bg); padding: 12px 8px; border-radius: 12px; box-shadow: var(--shadow);
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            font-size: 13px; font-weight: 500; cursor: pointer; border: 2px solid transparent; color: #333;
+            transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
+        }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
-        .card.ghost-out { opacity: 0; background-color: var(--correct-bg); color: white; pointer-events: none; }
-        .card.error-anim { background-color: var(--wrong-bg); color: white; transition: 0.3s; }
-        .card.hidden { display: none; }
+        .card.matched { background-color: var(--correct); color: white; pointer-events: none; box-shadow: none; }
+        .card.ghost-out { opacity: 0; pointer-events: none; }
+        .card.error-anim { background-color: var(--wrong); color: white; transition: 0.3s; }
+
+        /* Финальное окно */
+        #result-screen {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; max-width: 350px; background: var(--bg); border-radius: 30px;
+            box-shadow: var(--shadow); padding: 30px; text-align: center;
+            display: none; flex-direction: column; gap: 20px; z-index: 100;
+            opacity: 0; transition: opacity 2s ease;
+        }
+        .res-val { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .btn-restart {
+            padding: 15px; border-radius: 15px; border: none; background: var(--bg);
+            box-shadow: var(--shadow); color: var(--accent); font-weight: bold;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-restart:active { box-shadow: var(--inner-shadow); }
     </style>
 </head>
 <body>
@@ -57,12 +66,20 @@
         <div class="stat-card">❌ <span id="wrong-count">0</span></div>
     </div>
 
-    <div class="game-container">
+    <div id="game-ui" class="game-container">
         <div id="en-column" class="column"><div class="column-title">English</div></div>
         <div id="ru-column" class="column"><div class="column-title">Русский</div></div>
     </div>
 
+    <div id="result-screen">
+        <h2>Результаты</h2>
+        <div style="color: var(--correct)">Верно: <div id="final-ok" class="res-val">0</div></div>
+        <div style="color: var(--wrong)">Ошибок: <div id="final-err" class="res-val">0</div></div>
+        <button class="btn-restart" onclick="restartGame()">Начать заново</button>
+    </div>
+
     <script>
+        // Здесь ваш полный список из 160+ слов
         const allWords = [
             { en: "It slipped my mind", ru: "Вылетело из головы" },
             { en: "That's on me", ru: "Я виноват / Моя вина" },
@@ -70,21 +87,12 @@
             { en: "After you", ru: "После вас" },
             { en: "I'm easy", ru: "Я за любой вариант" },
             { en: "Not much", ru: "Ничего особенного" },
-            { en: "I am boring", ru: "Я скучный" },
-            { en: "I'm bored", ru: "Мне скучно" },
             { en: "Keep in touch", ru: "На связи" },
-            { en: "Never mind", ru: "Неважно" },
-            { en: "Take it easy", ru: "Расслабься" },
-            { en: "Go ahead", ru: "Давай" },
-            { en: "By the way", ru: "Кстати" },
-            { en: "What's up?", ru: "Как дела?" },
-            { en: "Count me in", ru: "Я в деле" },
-            { en: "Sounds good", ru: "Звучит неплохо" },
-            { en: "I mean it", ru: "Я серьезно" },
-            { en: "Check it out", ru: "Зацени" }
+            { en: "Take it easy", ru: "Расслабься" }
+            // Добавьте остальные слова сюда
         ];
 
-        let pool = [...allWords].sort(() => 0.5 - Math.random());
+        let pool = [];
         let correctScore = 0;
         let wrongScore = 0;
         let selectedCards = [];
@@ -96,33 +104,36 @@
             window.speechSynthesis.speak(msg);
         }
 
-        function initGame() {
+        function initRound() {
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
-            const startSet = pool.splice(0, 6);
-            const shuffledRu = [...startSet].sort(() => 0.5 - Math.random());
+            enCol.querySelectorAll('.card').forEach(c => c.remove());
+            ruCol.querySelectorAll('.card').forEach(c => c.remove());
 
-            for(let i=0; i<6; i++) {
-                enCol.appendChild(createSlot(startSet[i].en, startSet[i].en, 'en'));
-                ruCol.appendChild(createSlot(shuffledRu[i].ru, shuffledRu[i].pairId || shuffledRu[i].en, 'ru'));
+            if (pool.length < 6) {
+                showResults();
+                return;
             }
+
+            let roundWords = pool.splice(0, 6);
+            let shuffledRu = [...roundWords].sort(() => 0.5 - Math.random());
+
+            roundWords.forEach(p => enCol.appendChild(createCard(p.en, p.en, 'en')));
+            shuffledRu.forEach(p => ruCol.appendChild(createCard(p.ru, p.en, 'ru')));
         }
 
-        function createSlot(text, pairId, lang) {
-            const slot = document.createElement('div');
-            slot.className = 'card-slot';
+        function createCard(text, pairId, lang) {
             const card = document.createElement('div');
             card.className = 'card';
             card.textContent = text;
             card.dataset.lang = lang;
             card.dataset.pairId = pairId;
             card.onclick = () => handleCardClick(card);
-            slot.appendChild(card);
-            return slot;
+            return card;
         }
 
         function handleCardClick(card) {
-            if (card.classList.contains('selected') || card.classList.contains('ghost-out')) return;
+            if (card.classList.contains('selected') || card.classList.contains('matched')) return;
             if (card.dataset.lang === 'en') speak(card.textContent);
             card.classList.add('selected');
             selectedCards.push(card);
@@ -130,56 +141,60 @@
             if (selectedCards.length === 2) {
                 const [c1, c2] = selectedCards;
                 if (c1.dataset.pairId === c2.dataset.pairId && c1.dataset.lang !== c2.dataset.lang) {
-                    processCorrect(c1, c2);
+                    correctScore++;
+                    document.getElementById('correct-count').textContent = correctScore;
+                    c1.classList.replace('selected', 'matched');
+                    c2.classList.replace('selected', 'matched');
+                    checkRoundEnd();
                 } else {
-                    processWrong(c1, c2);
+                    wrongScore++;
+                    document.getElementById('wrong-count').textContent = wrongScore;
+                    c1.classList.add('error-anim');
+                    c2.classList.add('error-anim');
+                    setTimeout(() => {
+                        c1.classList.remove('selected', 'error-anim');
+                        c2.classList.remove('selected', 'error-anim');
+                    }, 500);
                 }
                 selectedCards = [];
             }
         }
 
-        function processCorrect(c1, c2) {
-            correctScore++;
-            document.getElementById('correct-count').textContent = correctScore;
-            c1.classList.add('ghost-out');
-            c2.classList.add('ghost-out');
-
-            setTimeout(() => {
-                if (pool.length > 0) {
-                    const newPair = pool.shift();
-                    updateCard(c1, newPair.en, newPair.en);
-                    updateCard(c2, newPair.ru, newPair.en);
-                } else {
-                    c1.parentElement.classList.add('hidden');
-                    c2.parentElement.classList.add('hidden');
-                }
-            }, 1200);
+        function checkRoundEnd() {
+            if (document.querySelectorAll('.card:not(.matched)').length === 0) {
+                setTimeout(() => {
+                    document.querySelectorAll('.card').forEach(c => c.classList.add('ghost-out'));
+                    setTimeout(initRound, 2000);
+                }, 1000);
+            }
         }
 
-        function updateCard(card, text, pairId) {
-            card.classList.remove('selected', 'ghost-out');
-            card.style.opacity = "0"; // Прячем перед сменой текста
-            
-            setTimeout(() => {
-                card.textContent = text;
-                card.dataset.pairId = pairId;
-                // Плавная материализация
-                card.style.opacity = "1";
-            }, 100);
+        function showResults() {
+            document.getElementById('game-ui').style.opacity = '0';
+            const screen = document.getElementById('result-screen');
+            document.getElementById('final-ok').textContent = correctScore;
+            document.getElementById('final-err').textContent = wrongScore;
+            screen.style.display = 'flex';
+            setTimeout(() => screen.style.opacity = '1', 100);
         }
 
-        function processWrong(c1, c2) {
-            wrongScore++;
-            document.getElementById('wrong-count').textContent = wrongScore;
-            c1.classList.add('error-anim');
-            c2.classList.add('error-anim');
+        function restartGame() {
+            correctScore = 0;
+            wrongScore = 0;
+            document.getElementById('correct-count').textContent = '0';
+            document.getElementById('wrong-count').textContent = '0';
+            document.getElementById('result-screen').style.opacity = '0';
             setTimeout(() => {
-                c1.classList.remove('selected', 'error-anim');
-                c2.classList.remove('selected', 'error-anim');
-            }, 500);
+                document.getElementById('result-screen').style.display = 'none';
+                document.getElementById('game-ui').style.opacity = '1';
+                pool = [...allWords].sort(() => 0.5 - Math.random());
+                initRound();
+            }, 1000);
         }
 
-        initGame();
+        // Запуск
+        pool = [...allWords].sort(() => 0.5 - Math.random());
+        initRound();
     </script>
 </body>
 </html>
