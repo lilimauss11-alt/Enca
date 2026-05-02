@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Ghostly</title>
+    <title>EnCa Fix</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="image.png">
@@ -11,7 +11,6 @@
     <style>
         :root {
             --bg: #e0e5ec;
-            --card-bg: #e0e5ec;
             --shadow: 7px 7px 14px #bec8d9, -7px -7px 14px #ffffff;
             --inner-shadow: inset 4px 4px 8px #bec8d9, inset -4px -4px 8px #ffffff;
             --accent: #4A90E2;
@@ -20,7 +19,7 @@
         }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body {
-            font-family: -apple-system, system-ui, sans-serif;
+            font-family: -apple-system, sans-serif;
             background-color: var(--bg);
             display: flex; flex-direction: column; align-items: center;
             margin: 0; padding: 20px; min-height: 100vh;
@@ -30,48 +29,27 @@
         
         .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; }
         .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-        .column-title { text-align: center; font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
+        .column-title { text-align: center; font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+
+        .card-slot {
+            min-height: 70px;
+            position: relative;
+        }
 
         .card {
-            background: var(--card-bg); padding: 12px 8px; border-radius: 12px; box-shadow: var(--shadow);
+            position: absolute; width: 100%; height: 100%;
+            background: var(--bg); padding: 12px 8px; border-radius: 12px; box-shadow: var(--shadow);
             display: flex; align-items: center; justify-content: center; text-align: center;
             font-size: 13px; font-weight: 500; cursor: pointer;
-            min-height: 70px; border: 2px solid transparent; color: #333;
-            /* Плавность для всех изменений */
-            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                        background-color 0.8s ease, 
-                        transform 0.8s ease, 
-                        box-shadow 0.4s;
+            border: 2px solid transparent; color: #333;
+            transition: opacity 1.2s ease, background-color 0.6s ease, transform 0.4s ease;
             opacity: 1;
         }
 
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
-        
-        /* Эффект призрачного исчезновения */
-        .card.ghost-out { 
-            opacity: 0;
-            background-color: var(--correct-bg);
-            color: white;
-            pointer-events: none;
-        }
-
-        /* Эффект призрачного появления */
-        .card.ghost-in {
-            animation: ghostAppear 1.5s ease-out forwards;
-        }
-
-        @keyframes ghostAppear {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .card.error-anim { 
-            background-color: var(--wrong-bg); 
-            color: white;
-            transition: background-color 0.3s;
-        }
-
-        .card.hidden { opacity: 0; pointer-events: none; }
+        .card.ghost-out { opacity: 0; background-color: var(--correct-bg); color: white; pointer-events: none; }
+        .card.error-anim { background-color: var(--wrong-bg); color: white; }
+        .card.hidden { display: none; }
     </style>
 </head>
 <body>
@@ -120,35 +98,30 @@
             window.speechSynthesis.speak(msg);
         }
 
-        function createCard(text, pairId, lang) {
+        function initGame() {
+            const enCol = document.getElementById('en-column');
+            const ruCol = document.getElementById('ru-column');
+            
+            const initialSet = pool.splice(0, 6);
+            const ruSet = [...initialSet].sort(() => 0.5 - Math.random());
+
+            for(let i=0; i<6; i++) {
+                enCol.appendChild(createSlot(initialSet[i].en, initialSet[i].en, 'en'));
+                ruCol.appendChild(createSlot(ruSet[i].ru, ruSet[i].pairId || ruSet[i].en, 'ru'));
+            }
+        }
+
+        function createSlot(text, pairId, lang) {
+            const slot = document.createElement('div');
+            slot.className = 'card-slot';
             const card = document.createElement('div');
-            card.className = 'card ghost-in';
+            card.className = 'card';
             card.textContent = text;
             card.dataset.lang = lang;
             card.dataset.pairId = pairId;
             card.onclick = () => handleCardClick(card);
-            return card;
-        }
-
-        function initGame() {
-            const enCol = document.getElementById('en-column');
-            const ruCol = document.getElementById('ru-column');
-            const initialSet = pool.splice(0, 6);
-            
-            initialSet.forEach(pair => {
-                enCol.appendChild(createCard(pair.en, pair.en, 'en'));
-                ruCol.appendChild(createCard(pair.ru, pair.en, 'ru'));
-            });
-            shuffleColumns();
-        }
-
-        function shuffleColumns() {
-            const enCol = document.getElementById('en-column');
-            const ruCol = document.getElementById('ru-column');
-            [enCol, ruCol].forEach(col => {
-                const cards = Array.from(col.querySelectorAll('.card:not(.hidden)'));
-                cards.sort(() => 0.5 - Math.random()).forEach(c => col.appendChild(c));
-            });
+            slot.appendChild(card);
+            return slot;
         }
 
         function handleCardClick(card) {
@@ -172,37 +145,35 @@
         function processCorrect(c1, c2) {
             correctScore++;
             document.getElementById('correct-count').textContent = correctScore;
-            
-            // Медленно растворяем
             c1.classList.add('ghost-out');
             c2.classList.add('ghost-out');
 
             setTimeout(() => {
                 if (pool.length > 0) {
                     const nextPair = pool.shift();
-                    // Заменяем и медленно проявляем
-                    updateCard(c1, nextPair);
-                    updateCard(c2, nextPair);
-                    shuffleColumns();
+                    replaceContent(c1, nextPair);
+                    replaceContent(c2, nextPair);
                 } else {
-                    c1.classList.add('hidden');
-                    c2.classList.add('hidden');
+                    c1.parentElement.classList.add('hidden');
+                    c2.parentElement.classList.add('hidden');
                 }
-            }, 1200); // Время на полное растворение
+            }, 1200);
         }
 
-        function updateCard(card, pair) {
-            card.classList.remove('selected', 'ghost-out', 'ghost-in');
-            void card.offsetWidth; // Рестарт анимации
-            card.classList.add('ghost-in');
+        function replaceContent(card, pair) {
+            card.classList.remove('selected', 'ghost-out');
+            card.style.opacity = "0"; // Мгновенно в ноль для смены текста
             
-            if (card.dataset.lang === 'en') {
-                card.textContent = pair.en;
-                card.dataset.pairId = pair.en;
-            } else {
-                card.textContent = pair.ru;
-                card.dataset.pairId = pair.en;
-            }
+            setTimeout(() => {
+                if (card.dataset.lang === 'en') {
+                    card.textContent = pair.en;
+                    card.dataset.pairId = pair.en;
+                } else {
+                    card.textContent = pair.ru;
+                    card.dataset.pairId = pair.en;
+                }
+                card.style.opacity = "1"; // Плавное появление
+            }, 50);
         }
 
         function processWrong(c1, c2) {
