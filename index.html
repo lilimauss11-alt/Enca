@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa All-Words Test</title>
-    
+    <title>EnCa - Full 160 Shuffle</title>
     <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,24 +24,23 @@
             display: flex; flex-direction: column; align-items: center;
             margin: 0; padding: 20px; min-height: 100vh;
         }
-        .stats-container { display: flex; gap: 15px; margin-bottom: 20px; width: 100%; max-width: 400px; }
-        .stat-card { flex: 1; padding: 15px; background: var(--bg); border-radius: 15px; box-shadow: var(--shadow); text-align: center; font-weight: bold; }
+        .stats-container { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; }
+        .stat-card { flex: 1; padding: 10px; background: var(--bg); border-radius: 12px; box-shadow: var(--shadow); text-align: center; font-size: 14px; font-weight: bold; }
         
-        .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; transition: opacity 1s; }
+        .game-container { display: flex; gap: 15px; width: 100%; max-width: 600px; }
         .column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-        .column-title { text-align: center; font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .column-title { text-align: center; font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
 
         .card {
-            min-height: 70px; background: var(--bg); padding: 12px 8px; border-radius: 12px; box-shadow: var(--shadow);
+            min-height: 70px; background: var(--bg); padding: 10px; border-radius: 12px; box-shadow: var(--shadow);
             display: flex; align-items: center; justify-content: center; text-align: center;
-            font-size: 13px; font-weight: 500; cursor: pointer; border: 2px solid transparent; color: #333;
-            transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
-            opacity: 1;
+            font-size: 13px; font-weight: 500; cursor: pointer; color: #333;
+            transition: opacity 1.2s ease, background-color 0.4s;
         }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
-        .card.matched { background-color: var(--correct); color: white; pointer-events: none; box-shadow: none; }
+        .card.matched { background-color: var(--correct); color: white; pointer-events: none; box-shadow: none; opacity: 0.3; }
         .card.ghost-out { opacity: 0; pointer-events: none; }
-        .card.error-anim { background-color: var(--wrong); color: white; transition: 0.3s; }
+        .card.error-anim { background-color: var(--wrong); color: white; }
     </style>
 </head>
 <body>
@@ -50,8 +48,7 @@
     <div class="stats-container">
         <div class="stat-card">✅ <span id="correct-count">0</span></div>
         <div class="stat-card">❌ <span id="wrong-count">0</span></div>
-        <!-- Счетчик оставшихся слов для проверки -->
-        <div class="stat-card">📦 <span id="pool-count">0</span></div>
+        <div class="stat-card" style="color: var(--accent)">📦 <span id="pool-count">0</span></div>
     </div>
 
     <div id="game-ui" class="game-container">
@@ -60,59 +57,67 @@
     </div>
 
     <script>
-        // Вставьте сюда ВЕСЬ ваш список из 160 слов
+        // ТВОЙ ПОЛНЫЙ СПИСОК (убедись, что тут все 160 слов)
         const allWords = [
             { en: "It slipped my mind", ru: "Вылетело из головы" },
-            { en: "That's on me", ru: "Я виноват / Моя вина" },
+            { en: "That's on me", ru: "Я виноват" },
             { en: "Cut it out", ru: "Прекрати это" },
             { en: "After you", ru: "После вас" },
             { en: "I'm easy", ru: "Я за любой вариант" },
             { en: "Not much", ru: "Ничего особенного" },
             { en: "Keep in touch", ru: "На связи" },
             { en: "Take it easy", ru: "Расслабься" }
-            // ... и так далее до 160
+            // ... добавь остальные фразы здесь
         ];
 
         let pool = [];
+        let selectedCards = [];
         let correctScore = 0;
         let wrongScore = 0;
-        let selectedCards = [];
 
         function speak(text) {
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
-            msg.rate = 0.85;
+            msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
         }
 
-        // Функция полной перезагрузки мешочка со словами
-        function refreshPool() {
-            pool = [...allWords].sort(() => Math.random() - 0.5);
-            updatePoolDisplay();
+        // Алгоритм идеального перемешивания
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
         }
 
-        function updatePoolDisplay() {
+        function refreshPool() {
+            pool = shuffle([...allWords]);
+            updateStats();
+        }
+
+        function updateStats() {
             document.getElementById('pool-count').textContent = pool.length;
+            document.getElementById('correct-count').textContent = correctScore;
+            document.getElementById('wrong-count').textContent = wrongScore;
         }
 
         function initRound() {
-            // Если мешочек пуст, наполняем его снова всеми 160 словами
-            if (pool.length < 6) {
-                refreshPool();
-            }
+            if (pool.length < 6) refreshPool();
 
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
-            enCol.querySelectorAll('.card').forEach(c => c.remove());
-            ruCol.querySelectorAll('.card').forEach(c => c.remove());
+            
+            // Чистим старые карточки
+            Array.from(enCol.children).forEach(child => { if(!child.classList.contains('column-title')) child.remove(); });
+            Array.from(ruCol.children).forEach(child => { if(!child.classList.contains('column-title')) child.remove(); });
 
             let roundWords = pool.splice(0, 6);
-            updatePoolDisplay();
-            
-            let shuffledRu = [...roundWords].sort(() => Math.random() - 0.5);
+            let shuffledRu = shuffle([...roundWords]);
 
             roundWords.forEach(p => enCol.appendChild(createCard(p.en, p.en, 'en')));
             shuffledRu.forEach(p => ruCol.appendChild(createCard(p.ru, p.en, 'ru')));
+            updateStats();
         }
 
         function createCard(text, pairId, lang) {
@@ -121,16 +126,14 @@
             card.textContent = text;
             card.dataset.lang = lang;
             card.dataset.pairId = pairId;
-            card.style.opacity = "0";
             card.onclick = () => handleCardClick(card);
-            setTimeout(() => card.style.opacity = "1", 50);
             return card;
         }
 
         function handleCardClick(card) {
             if (card.classList.contains('selected') || card.classList.contains('matched')) return;
 
-            // Ваша любимая логика переключения
+            // Логика переключения выбора
             if (selectedCards.length === 1 && selectedCards[0].dataset.lang === card.dataset.lang) {
                 selectedCards[0].classList.remove('selected');
                 selectedCards = [card];
@@ -147,34 +150,33 @@
                 const [c1, c2] = selectedCards;
                 if (c1.dataset.pairId === c2.dataset.pairId) {
                     correctScore++;
-                    document.getElementById('correct-count').textContent = correctScore;
                     c1.classList.replace('selected', 'matched');
                     c2.classList.replace('selected', 'matched');
                     checkRoundEnd();
                 } else {
                     wrongScore++;
-                    document.getElementById('wrong-count').textContent = wrongScore;
                     c1.classList.add('error-anim');
                     c2.classList.add('error-anim');
                     setTimeout(() => {
                         c1.classList.remove('selected', 'error-anim');
                         c2.classList.remove('selected', 'error-anim');
-                    }, 500);
+                    }, 400);
                 }
                 selectedCards = [];
+                updateStats();
             }
         }
 
         function checkRoundEnd() {
-            if (document.querySelectorAll('.card:not(.matched)').length === 0) {
+            if (document.querySelectorAll('.card:not(.matched):not(.column-title)').length === 0) {
                 setTimeout(() => {
-                    document.querySelectorAll('.card').forEach(c => c.classList.add('ghost-out'));
-                    setTimeout(initRound, 1500);
-                }, 800);
+                    document.querySelectorAll('.card:not(.column-title)').forEach(c => c.classList.add('ghost-out'));
+                    setTimeout(initRound, 1200);
+                }, 600);
             }
         }
 
-        // Начало игры: перемешиваем и стартуем
+        // Старт
         refreshPool();
         initRound();
     </script>
