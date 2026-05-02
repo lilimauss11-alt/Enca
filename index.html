@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Global Stats</title>
+    <title>EnCa Marathon Pro</title>
+    
+    <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="image.png">
 
     <style>
         :root {
@@ -35,7 +36,8 @@
             min-height: 70px; background: var(--bg); padding: 12px 8px; border-radius: 12px; box-shadow: var(--shadow);
             display: flex; align-items: center; justify-content: center; text-align: center;
             font-size: 13px; font-weight: 500; cursor: pointer; border: 2px solid transparent; color: #333;
-            transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
+            transition: opacity 2.0s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease, color 0.6s ease;
+            opacity: 1;
         }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
         .card.matched { background-color: var(--correct); color: white; pointer-events: none; box-shadow: none; }
@@ -71,15 +73,13 @@
     </div>
 
     <div id="result-screen">
-        <h2>Финальный счет</h2>
-        <p>Вы прошли весь список!</p>
-        <div style="color: var(--correct)">Всего верно: <div id="final-ok" class="res-val">0</div></div>
-        <div style="color: var(--wrong)">Всего ошибок: <div id="final-err" class="res-val">0</div></div>
-        <button class="btn-restart" onclick="restartGame()">Начать марафон заново</button>
+        <h2>Марафон завершен!</h2>
+        <div style="color: var(--correct)">Верно: <div id="final-ok" class="res-val">0</div></div>
+        <div style="color: var(--wrong)">Ошибок: <div id="final-err" class="res-val">0</div></div>
+        <button class="btn-restart" onclick="restartGame()">Начать сначала</button>
     </div>
 
     <script>
-        // Вставьте сюда ваш полный список из 160 слов
         const allWords = [
             { en: "It slipped my mind", ru: "Вылетело из головы" },
             { en: "That's on me", ru: "Я виноват / Моя вина" },
@@ -89,7 +89,7 @@
             { en: "Not much", ru: "Ничего особенного" },
             { en: "Keep in touch", ru: "На связи" },
             { en: "Take it easy", ru: "Расслабься" }
-            // ... и так далее до 160
+            // Добавьте сюда остальные слова
         ];
 
         let pool = [];
@@ -110,7 +110,6 @@
             enCol.querySelectorAll('.card').forEach(c => c.remove());
             ruCol.querySelectorAll('.card').forEach(c => c.remove());
 
-            // Если слов осталось меньше 6 — показываем финал марафона
             if (pool.length < 6) {
                 showResults();
                 return;
@@ -129,19 +128,31 @@
             card.textContent = text;
             card.dataset.lang = lang;
             card.dataset.pairId = pairId;
+            card.style.opacity = "0";
             card.onclick = () => handleCardClick(card);
+            setTimeout(() => card.style.opacity = "1", 100);
             return card;
         }
 
         function handleCardClick(card) {
             if (card.classList.contains('selected') || card.classList.contains('matched')) return;
+
+            // Если уже выбрана карточка того же языка - просто переключаем выбор
+            if (selectedCards.length === 1 && selectedCards[0].dataset.lang === card.dataset.lang) {
+                selectedCards[0].classList.remove('selected');
+                selectedCards = [card];
+                card.classList.add('selected');
+                if (card.dataset.lang === 'en') speak(card.textContent);
+                return;
+            }
+
             if (card.dataset.lang === 'en') speak(card.textContent);
             card.classList.add('selected');
             selectedCards.push(card);
 
             if (selectedCards.length === 2) {
                 const [c1, c2] = selectedCards;
-                if (c1.dataset.pairId === c2.dataset.pairId && c1.dataset.lang !== c2.dataset.lang) {
+                if (c1.dataset.pairId === c2.dataset.pairId) {
                     correctScore++;
                     document.getElementById('correct-count').textContent = correctScore;
                     c1.classList.replace('selected', 'matched');
@@ -162,11 +173,9 @@
         }
 
         function checkRoundEnd() {
-            // Если на экране не осталось непарных карточек
             if (document.querySelectorAll('.card:not(.matched)').length === 0) {
                 setTimeout(() => {
                     document.querySelectorAll('.card').forEach(c => c.classList.add('ghost-out'));
-                    // Через 2 секунды после растворения запускаем следующий раунд
                     setTimeout(initRound, 2000);
                 }, 1000);
             }
@@ -190,13 +199,11 @@
             setTimeout(() => {
                 document.getElementById('result-screen').style.display = 'none';
                 document.getElementById('game-ui').style.opacity = '1';
-                // Перемешиваем заново весь список из 160 слов
                 pool = [...allWords].sort(() => 0.5 - Math.random());
                 initRound();
             }, 1000);
         }
 
-        // Первый запуск
         pool = [...allWords].sort(() => 0.5 - Math.random());
         initRound();
     </script>
