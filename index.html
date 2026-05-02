@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EnCa Marathon Pro</title>
+    <title>EnCa Marathon Final Fix</title>
     
     <link rel="apple-touch-icon" href="image.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -36,8 +36,7 @@
             min-height: 70px; background: var(--bg); padding: 12px 8px; border-radius: 12px; box-shadow: var(--shadow);
             display: flex; align-items: center; justify-content: center; text-align: center;
             font-size: 13px; font-weight: 500; cursor: pointer; border: 2px solid transparent; color: #333;
-            transition: opacity 2.0s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease, color 0.6s ease;
-            opacity: 1;
+            transition: opacity 2.0s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
         }
         .card.selected { box-shadow: var(--inner-shadow); color: var(--accent); }
         .card.matched { background-color: var(--correct); color: white; pointer-events: none; box-shadow: none; }
@@ -76,7 +75,7 @@
         <h2>Марафон завершен!</h2>
         <div style="color: var(--correct)">Верно: <div id="final-ok" class="res-val">0</div></div>
         <div style="color: var(--wrong)">Ошибок: <div id="final-err" class="res-val">0</div></div>
-        <button class="btn-restart" onclick="restartGame()">Начать сначала</button>
+        <button class="btn-restart" onclick="restartGame()">Начать заново</button>
     </div>
 
     <script>
@@ -89,7 +88,7 @@
             { en: "Not much", ru: "Ничего особенного" },
             { en: "Keep in touch", ru: "На связи" },
             { en: "Take it easy", ru: "Расслабься" }
-            // Добавьте сюда остальные слова
+            // Ваш список из 160 слов
         ];
 
         let pool = [];
@@ -105,17 +104,17 @@
         }
 
         function initRound() {
+            // Если в мешочке совсем пусто - выходим (результаты покажет checkRoundEnd)
+            if (pool.length === 0) return;
+
             const enCol = document.getElementById('en-column');
             const ruCol = document.getElementById('ru-column');
             enCol.querySelectorAll('.card').forEach(c => c.remove());
             ruCol.querySelectorAll('.card').forEach(c => c.remove());
 
-            if (pool.length < 6) {
-                showResults();
-                return;
-            }
-
-            let roundWords = pool.splice(0, 6);
+            // Берем 6 слов или столько, сколько осталось в мешочке
+            let count = Math.min(6, pool.length);
+            let roundWords = pool.splice(0, count);
             let shuffledRu = [...roundWords].sort(() => 0.5 - Math.random());
 
             roundWords.forEach(p => enCol.appendChild(createCard(p.en, p.en, 'en')));
@@ -137,7 +136,7 @@
         function handleCardClick(card) {
             if (card.classList.contains('selected') || card.classList.contains('matched')) return;
 
-            // Если уже выбрана карточка того же языка - просто переключаем выбор
+            // Логика переключения внутри одного столбца
             if (selectedCards.length === 1 && selectedCards[0].dataset.lang === card.dataset.lang) {
                 selectedCards[0].classList.remove('selected');
                 selectedCards = [card];
@@ -173,10 +172,20 @@
         }
 
         function checkRoundEnd() {
+            // Ждем, пока на экране закончатся карточки
             if (document.querySelectorAll('.card:not(.matched)').length === 0) {
                 setTimeout(() => {
                     document.querySelectorAll('.card').forEach(c => c.classList.add('ghost-out'));
-                    setTimeout(initRound, 2000);
+                    
+                    setTimeout(() => {
+                        // Только когда экран пуст, проверяем мешочек
+                        if (pool.length > 0) {
+                            initRound();
+                        } else {
+                            // МЕШОЧЕК ПУСТ - МАРАФОН ОКОНЧЕН
+                            showResults();
+                        }
+                    }, 2000);
                 }, 1000);
             }
         }
